@@ -11,3 +11,9 @@ idigbio record id | external id |
  44e8-813e-3c68380f3e01 | MYCOBANK:123
  44e8-813e-3c68380f3e01 | GNI:abd2343a123
 
+# Example for MycoBank integation
+
+name | MycoId
+ --- | ---
+ Tulostoma | 19339
+ ... | ...
