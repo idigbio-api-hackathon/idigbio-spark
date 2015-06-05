@@ -1,5 +1,5 @@
 # idigbio-spark
-processing engine for iDigBio archives
+links iDigBio records to GenBank, Global Names and other projects.
 
 [![Build Status](https://travis-ci.org/idigbio-api-hackathon/idigbio-spark.svg?branch=master)](https://travis-ci.org/idigbio-api-hackathon/idigbio-spark)
 
