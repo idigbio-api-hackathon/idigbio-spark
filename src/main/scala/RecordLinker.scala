@@ -9,7 +9,7 @@ object RecordLinker {
 
     def recordLinkBuilder(linkerName: String): (Map[String, String] => String) = linkerName match {
       case "globalnames" => GlobalNamesUUID.generateGlobalNamesUUID
-      case "mycobank" => MycoBank.generateId
+      case "genbank" => GenBank.generateId
       case _ => NameConcat.concatName
 
     }
