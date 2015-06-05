@@ -9,7 +9,7 @@ object GenBank {
     val genBankIds = (idPattern findAllIn associatedSequences).toList
     genBankIds match {
       case Nil => ""
-      case id :: ids => "genbank:" ++ id
+      case ids => "genbank:" ++ ids.mkString("|")
 
     }
   }

@@ -20,8 +20,7 @@ object RecordLinker {
     val headers = new CSVParser().parseLine(logData.take(1).head)
 
     val links: RDD[(String, String)] = handleLines(logData, headers, "id", recordLinkBuilder(args(1)))
-    links.map(link => List(link._1,link._2).mkString(",")).saveAsTextFile(occurrenceFile + ".links")
-
+    links.map(link => List(link._1,link._2).mkString(",")).saveAsTextFile(occurrenceFile + ".links" + System.currentTimeMillis)
   }
 
   def handleLines(lines: RDD[String],
