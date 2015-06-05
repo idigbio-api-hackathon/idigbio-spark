@@ -1,5 +1,5 @@
 # idigbio-spark
-links iDigBio records to GenBank, Global Names and other projects.
+Links iDigBio records to GenBank, Global Names and other projects.
 
 [![Build Status](https://travis-ci.org/idigbio-api-hackathon/idigbio-spark.svg?branch=master)](https://travis-ci.org/idigbio-api-hackathon/idigbio-spark)
 
