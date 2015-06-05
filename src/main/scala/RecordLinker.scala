@@ -5,6 +5,10 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 object RecordLinker {
   def main(args: Array[String]) {
+    if (args.length < 1) {
+      throw new IllegalArgumentException("please provide linker name: [globalnames] or [genbank]")
+    }
+
     val occurrenceFile = args(0)
 
     def recordLinkBuilder(linkerName: String): (Map[String, String] => String) = linkerName match {
