@@ -3,6 +3,14 @@ processing engine for iDigBio archives
 
 python scripts runner [spark-submit wordcount.py] ran out of heapspace... seems that memory management is a little more solid when using scala.
 
+# how to build Spark Job
+```
+sbt assembly
+```
+
+# running the spark job
+see submit.sh script.
+
 Sample ID link table:
 
 idigbio record id | external id | 
