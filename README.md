@@ -1,5 +1,5 @@
 # idigbio-spark
-Links iDigBio records to GenBank, Global Names and possibly other open bioinformatics resources. The purpose of this project is to link _at scale_ by using [Apache's Spark](http://spark.apache.org) a distributed data processing tool. 
+Links iDigBio records to GenBank, Global Names and possibly other open bioinformatics resources. The purpose of this project is to link *at scale* by using [Apache's Spark](http://spark.apache.org) a distributed data processing tool. 
 
 [![Build Status](https://travis-ci.org/idigbio-api-hackathon/idigbio-spark.svg?branch=master)](https://travis-ci.org/idigbio-api-hackathon/idigbio-spark)
 
@@ -86,7 +86,7 @@ Software  Ubuntu
 For all runs CPU utilization was at ~80% for both mac and server systems. This means that the spark job kept 2 CPUs busy on the mac system and about 32 CPUs busy on the server system.
 
 # conclusion
-The spark job created to process large amounts of iDigBio was able to scale from a laptop to a powerful 32 core server _without any modifications_ to the job. This shows the benefits of Apache's Spark - after "sparkizing" the processing algorithms, large amounts of data can be processed on small (laptop) and large (server) servers, where spark figures out how to optimially use the available resources.
+The spark job created to process large amounts of iDigBio was able to scale from a laptop to a powerful 32 core server *without any modifications* to the job. This shows the benefits of Apache's Spark - after "sparkizing" the processing algorithms, large amounts of data can be processed on small (laptop) and large (server) servers, where spark figures out how to optimially use the available resources.
 
 Spark jobs can be implemented in Scala, Java and Python. An early attempt to implement the job in Python caused the process to crash due to an out of memory issue. A later implementation in Scala was stable on both small (macbook) and large (32 core server) system. This seems to suggest that Python support might require some more configuration tweaking to get the jobs to complete reliably, while the Scala implementation work without any configuration changes. 
 
