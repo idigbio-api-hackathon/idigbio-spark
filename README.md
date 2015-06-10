@@ -1,5 +1,5 @@
 # idigbio-spark
-Links iDigBio records to GenBank, Global Names and possibly other open bioinformatics resources. The purpose of this project is to link *at scale* by using [Apache's Spark](http://spark.apache.org) a distributed data processing tool. 
+Links iDigBio records to [GenBank](http://www.ncbi.nlm.nih.gov/genbank/), [Global Names](http://globalnames.org) and possibly other open bioinformatics resources. The purpose of this project is to **link specimen records to external systems like GenBank and Global Names at scale** by using [Apache's Spark](http://spark.apache.org) a distributed data processing tool. 
 
 [![Build Status](https://travis-ci.org/idigbio-api-hackathon/idigbio-spark.svg?branch=master)](https://travis-ci.org/idigbio-api-hackathon/idigbio-spark)
 
@@ -54,24 +54,25 @@ part-00008
 ```
 
 # output
-the resulting link table looks something like
+the resulting link table looks something like:
 
 ```
 00f8efa0-75ee-45c1-a88d-8a853705c6dd,gn:813583ad-c364-5c15-b01a-43eaa1446fee
 004ba454-7cce-4f6d-8a22-bf4aa34981df,gn:dc74c890-d31c-5fb4-aaad-466bf14bb215
 00350756-ba40-4fda-8db3-ade4b470160c,gn:e3992c38-df0c-5be6-839c-d84c8edabfd1
 ```
+where the first column is the idigbio record UUID and the second column is the global name hash associated with the taxonomic name of the specimen.
 
 # performance results 
 two systems where used: 
 
-*Macbook* 
+**Macbook** 
 Model 13-inch, Aluminum, Late 2008
 Processor  2.4 GHz Intel Core 2 Duo
 Memory  8 GB 1067 MHz DDR3
 Software  OS X 10.9.5 (13F1077)
 
-*an iDigBio Server*
+**an iDigBio Server**
 Model ?
 Processor  32 Core (?)
 Memory  128 GB (?)
@@ -90,4 +91,4 @@ The spark job created to process large amounts of iDigBio was able to scale from
 
 Spark jobs can be implemented in Scala, Java and Python. An early attempt to implement the job in Python caused the process to crash due to an out of memory issue. A later implementation in Scala was stable on both small (macbook) and large (32 core server) system. This seems to suggest that Python support might require some more configuration tweaking to get the jobs to complete reliably, while the Scala implementation work without any configuration changes. 
 
-Preliminary results seem to suggest that Apache Spark is suitable for stable and performant processing of large (~GB) datasets like iDigBio. Our implementation algorithms that link iDigBio to Global Names and GenBank will hopefully help make it easier to discover and increase the quality of iDigBio records. 
+These preliminary results seem to suggest that Apache Spark is suitable for stable and performant processing of large (~GB) datasets like iDigBio. Our implementation algorithms that link iDigBio to Global Names and GenBank will hopefully help make it easier to discover iDigBio specimen records and their associations with other web-connected resources. 
