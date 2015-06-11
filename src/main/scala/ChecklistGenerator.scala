@@ -18,6 +18,7 @@ object ChecklistGenerator {
 
 
     val conf = new SparkConf()
+      .set("spark.cassandra.connection.host", "localhost")
       .setAppName("iDigBio-LD")
     val sc = new SparkContext(conf)
     val logData = sc.textFile(occurrenceFile).cache()
@@ -28,8 +29,14 @@ object ChecklistGenerator {
 
     val output = if (args.length > 3) args(3).trim else ""
     output match {
-      case "cassandra" => sortedChecklist.map(item => List(taxonSelector, wktString, item._1, item._2).mkString(","))
-        .saveToCassandra("idigbio", "checklist", CassandraUtil.checklistColumns)
+      case "cassandra" => {
+        CassandraConnector(sc.getConf).withSessionDo { session =>
+          session.execute(CassandraUtil.checklistKeySpaceCreate)
+          session.execute(CassandraUtil.checklistTableCreate)
+        }
+        sortedChecklist.map(item => Seq(taxonSelector, wktString, item._1, item._2))
+          .saveToCassandra("idigbio", "checklist", CassandraUtil.checklistColumns)
+      }
 
       case _ => sortedChecklist.map(item => List(taxonSelector, wktString, item._1, item._2).mkString(","))
         .saveAsTextFile(occurrenceFile + ".checklist" + System.currentTimeMillis)
