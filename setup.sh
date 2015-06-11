@@ -5,3 +5,4 @@ wget www.scala-lang.org/files/archive/scala-2.10.4.deb
 wget http://dl.bintray.com/sbt/debian/sbt-0.13.8.deb
 git clone https://github.com/idigbio-api-hackathon/idigbio-spark.git
 wget https://s.idigbio.org/idigbio-static-downloads/idigbio.zip
+wget http://mirrors.ibiblio.org/apache/cassandra/2.1.6/apache-cassandra-2.1.6-bin.tar.gz

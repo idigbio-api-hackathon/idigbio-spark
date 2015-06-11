@@ -1,6 +1,8 @@
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest._
+import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.spark.connector._
 
 class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
 
@@ -8,6 +10,7 @@ class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
 
   override def beforeAll() = {
     val conf = new SparkConf()
+      .set("spark.cassandra.connection.host", "localhost")
       .setMaster("local[2]")
       .setAppName("test-spark")
     sc = new SparkContext(conf)
@@ -62,7 +65,22 @@ class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
     val checklistAll = checklist.collect()
     checklistAll should have length 3
     checklistAll should contain("Mini mousus", 1)
+  }
+
+  // cassandra can run embedded, but has a library dependency conflict with spark
+    @Ignore def `"concatenating rows" should "be saved to cassandra" in` {
+    CassandraConnector(sc.getConf).withSessionDo { session =>
+      session.execute(CassandraUtil.checklistKeySpaceCreate)
+      session.execute(CassandraUtil.checklistTableCreate)
+      session.execute(s"TRUNCATE idigbio.checklist")
+    }
+    val otherLines = Seq(("Mammalia|Insecta", "LINE(1 2 3 4)", "checklist item", 1)
+      , ("Mammalia|Insecta", "LINE(1 2 3 4)", "other checklist item", 1))
+
+    val rdd = sc.parallelize(otherLines)
+      .saveToCassandra("idigbio", "checklist", CassandraUtil.checklistColumns)
 
   }
+
 
 }
