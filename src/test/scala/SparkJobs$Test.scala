@@ -1,31 +1,38 @@
-import com.spatial4j.core.context.SpatialContext
-import com.spatial4j.core.shape.{Shape, SpatialRelation}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest._
 
-class ChecklistSpark$Test extends FlatSpec with BeforeAndAfter with Matchers {
-
-  private val master = "local[2]"
-  private val appName = "example-spark"
+class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
 
   private var sc: SparkContext = _
 
-  before {
+  override def beforeAll() = {
     val conf = new SparkConf()
-      .setMaster(master)
-      .setAppName(appName)
-
+      .setMaster("local[2]")
+      .setAppName("test-spark")
     sc = new SparkContext(conf)
   }
 
-  after {
+  override def afterAll() = {
     if (sc != null) {
       sc.stop()
     }
   }
 
-  "filter merge header and line" should "return selected value" in {
+  "concatenating rows" should "link the record with the concatenated values" in {
+    val headers = Seq("id", "dwc:scientificName", "dwc:scientificNameAuthorship", "dwc:someOther")
+    val lines = Seq("123,Mickey mousus,walt,xyz", "345,Donald duckus,walt,zzz")
+    val rdd = sc.parallelize(lines)
+
+    val recordLinks = RecordLinker.handleLines(rdd, headers, "id", NameConcat.concatName).collect()
+
+    recordLinks should contain(("345", "Donald duckus walt"))
+    recordLinks should contain(("123", "Mickey mousus walt"))
+    recordLinks should not contain (("h2", "v2_2"))
+    recordLinks should not contain (("h2", "v2_1"))
+  }
+
+  "generating a checklist" should "an ordered list of most frequently observed taxa" in {
     val headers = Seq("id", "dwc:scientificName", "dwc:scientificNameAuthorship", "dwc:decimalLatitude", "dwc:decimalLongitude")
     val lines = Seq("123,Mickey mousus,walt,12.2,16.4"
       , "234,Mickey mousus,walt,12.1,17.7"
@@ -57,6 +64,5 @@ class ChecklistSpark$Test extends FlatSpec with BeforeAndAfter with Matchers {
     checklistAll should contain("Mini mousus", 1)
 
   }
-
 
 }
