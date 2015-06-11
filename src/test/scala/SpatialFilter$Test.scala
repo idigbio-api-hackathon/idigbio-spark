@@ -5,7 +5,7 @@ class SpatialFilter$Test extends FlatSpec with Matchers {
 
   "a row with coordinates" should "return true" in {
     val row = Map("dwc:decimalLatitude" -> "32.5", "dwc:decimalLongitude" -> "12.3")
-    assert(SpatialFilter.locatedIn("ENVELOPE(10,13,40,30)", row))
+    SpatialFilter.locatedIn("ENVELOPE(10,13,40,30)", row) shouldBe true
   }
 
   "a row with malformed coordinates" should "return false" in {

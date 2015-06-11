@@ -3,11 +3,15 @@ import org.scalatest._
 class TaxonFilter$Test extends FlatSpec with Matchers {
 
   "a row with matching taxon" should "return true" in {
-    assert(TaxonFilter.hasTaxa(List("Homo sapiens"), Map("dwc:scientificName" -> "Homo sapiens")))
+    TaxonFilter.hasTaxa(List("Homo sapiens"), Map("dwc:scientificName" -> "Homo sapiens")) shouldBe true
   }
 
   "a row with matching genus" should "return true" in {
-    assert(TaxonFilter.hasTaxa(List("Homo"), Map("dwc:scientificName" -> "Homo sapiens", "dwc:genus" -> "Homo")))
+    TaxonFilter.hasTaxa(List("Homo"), Map("dwc:scientificName" -> "Homo sapiens", "dwc:genus" -> "Homo")) shouldBe true
+  }
+
+  "a row with matching kingdom" should "return true" in {
+    TaxonFilter.hasTaxa(List("Animalia"), Map("dwc:scientificName" -> "Homo sapiens", "dwc:kingdom" -> "Animalia")) shouldBe true
   }
 
   "a row with no matches genus" should "return true" in {

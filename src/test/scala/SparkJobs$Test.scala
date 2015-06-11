@@ -47,7 +47,7 @@ class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
     val rdd = sc.parallelize(lines)
 
     val rowList: RDD[Seq[(String, String)]] = ChecklistGenerator
-      .applySpatialTaxonomicFilter(headers, rdd, List("Mickey mousus", "Mini mousus", "Donald duckus"), "ENVELOPE(10,21,13,10)")
+      .applySpatioTaxonomicFilter(headers, rdd, List("Mickey mousus", "Mini mousus", "Donald duckus"), "ENVELOPE(10,21,13,10)")
 
     rowList.collect should have length 6
 
