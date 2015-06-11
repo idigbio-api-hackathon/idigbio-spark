@@ -34,11 +34,11 @@ object ChecklistGenerator {
           session.execute(CassandraUtil.checklistKeySpaceCreate)
           session.execute(CassandraUtil.checklistTableCreate)
         }
-        sortedChecklist.map(item => Seq(taxonSelector, wktString, item._1, item._2))
+        sortedChecklist.map(item => (taxonSelector.mkString("|"), wktString, item._1, item._2))
           .saveToCassandra("idigbio", "checklist", CassandraUtil.checklistColumns)
       }
 
-      case _ => sortedChecklist.map(item => List(taxonSelector, wktString, item._1, item._2).mkString(","))
+      case _ => sortedChecklist.map(item => List(taxonSelector.mkString("|"), wktString, item._1, item._2).mkString(","))
         .saveAsTextFile(occurrenceFile + ".checklist" + System.currentTimeMillis)
     }
 
