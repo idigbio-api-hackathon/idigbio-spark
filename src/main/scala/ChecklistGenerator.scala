@@ -13,7 +13,7 @@ object ChecklistGenerator {
     }
 
     val occurrenceFile = args(0)
-    val taxonSelector = args(1).split( """\|""").toList
+    val taxonSelector = args(1).split( """[\|,]""").toList
     val wktString = args(2).trim
 
 
