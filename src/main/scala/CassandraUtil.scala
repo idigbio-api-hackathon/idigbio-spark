@@ -7,7 +7,7 @@ object CassandraUtil {
   }
 
   def checklistRegistryTableCreate: String = {
-    s"CREATE TABLE IF NOT EXISTS idigbio.checklist_registry (taxonselector TEXT, wktstring TEXT, status TEXT, recordcount int, PRIMARY KEY((taxonselector, wktstring), status))"
+    s"CREATE TABLE IF NOT EXISTS idigbio.checklist_registry (taxonselector TEXT, wktstring TEXT, status TEXT, recordcount int, PRIMARY KEY(taxonselector, wktstring))"
   }
 
   def checklistKeySpaceCreate: String = {
