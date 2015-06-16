@@ -33,6 +33,7 @@ object ChecklistGenerator {
       case "cassandra" => {
         CassandraConnector(sc.getConf).withSessionDo { session =>
           session.execute(CassandraUtil.checklistKeySpaceCreate)
+          session.execute(CassandraUtil.checklistRegistryTableCreate)
           session.execute(CassandraUtil.checklistTableCreate)
         }
         sortedChecklist.cache().map(item => (taxonSelectorString, wktString, item._1, item._2))
