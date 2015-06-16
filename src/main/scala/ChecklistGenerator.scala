@@ -28,17 +28,21 @@ object ChecklistGenerator {
     val sortedChecklist = countByTaxonAndSort(filtered)
 
     val output = if (args.length > 3) args(3).trim else ""
+    val taxonSelectorString: String = taxonSelector.mkString("|")
     output match {
       case "cassandra" => {
         CassandraConnector(sc.getConf).withSessionDo { session =>
           session.execute(CassandraUtil.checklistKeySpaceCreate)
           session.execute(CassandraUtil.checklistTableCreate)
         }
-        sortedChecklist.map(item => (taxonSelector.mkString("|"), wktString, item._1, item._2))
+        sortedChecklist.cache().map(item => (taxonSelectorString, wktString, item._1, item._2))
           .saveToCassandra("idigbio", "checklist", CassandraUtil.checklistColumns)
+
+        sc.parallelize(Seq(taxonSelectorString, wktString, "ready", sortedChecklist.count()))
+          .saveToCassandra("idigbio", "checklist_registry", CassandraUtil.checklistRegistryColumns)
       }
 
-      case _ => sortedChecklist.map(item => List(taxonSelector.mkString("|"), wktString, item._1, item._2).mkString(","))
+      case _ => sortedChecklist.map(item => List(taxonSelectorString, wktString, item._1, item._2).mkString(","))
         .saveAsTextFile(occurrenceFile + ".checklist" + System.currentTimeMillis)
     }
 
