@@ -21,6 +21,11 @@ object ChecklistGenerator {
       .set("spark.cassandra.connection.host", "localhost")
       .setAppName("iDigBio-LD")
     val sc = new SparkContext(conf)
+
+    val taxonSelectorString: String = taxonSelector.mkString("|")
+    sc.parallelize(Seq((taxonSelectorString, wktString, "processing")))
+              .saveToCassandra("idigbio", "checklist_registry", CassandraUtil.checklistRegistryStatusOnlyColumns)
+
     val logData = sc.textFile(occurrenceFile).cache()
     val headers = new CSVParser().parseLine(logData.take(1).head)
 
@@ -28,7 +33,6 @@ object ChecklistGenerator {
     val sortedChecklist = countByTaxonAndSort(filtered)
 
     val output = if (args.length > 3) args(3).trim else ""
-    val taxonSelectorString: String = taxonSelector.mkString("|")
     output match {
       case "cassandra" => {
         CassandraConnector(sc.getConf).withSessionDo { session =>

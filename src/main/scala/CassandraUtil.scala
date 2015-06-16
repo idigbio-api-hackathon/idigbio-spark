@@ -22,4 +22,8 @@ object CassandraUtil {
     SomeColumns("taxonselector", "wktstring", "status", "recordcount")
   }
 
+  def checklistRegistryStatusOnlyColumns: SomeColumns = {
+    SomeColumns("taxonselector", "wktstring", "status")
+  }
+
 }
