@@ -39,7 +39,7 @@ object ChecklistGenerator {
         sortedChecklist.cache().map(item => (taxonSelectorString, wktString, item._1, item._2))
           .saveToCassandra("idigbio", "checklist", CassandraUtil.checklistColumns)
 
-        sc.parallelize(Seq(Seq(taxonSelectorString, wktString, "ready", sortedChecklist.count())))
+        sc.parallelize(Seq((taxonSelectorString, wktString, "ready", sortedChecklist.count())))
           .saveToCassandra("idigbio", "checklist_registry", CassandraUtil.checklistRegistryColumns)
       }
 

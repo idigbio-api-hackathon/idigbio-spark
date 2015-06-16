@@ -68,10 +68,13 @@ class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
   }
 
   // cassandra can run embedded, but has a library dependency conflict with spark
-    @Ignore def `"concatenating rows" should "be saved to cassandra" in` {
+  // this test assumes a running local cassandra instance
+  @Ignore def `"concatenating rows" should "be saved to cassandra" in` {
+    //"concatenating rows" should "be saved to cassandra" in {
     CassandraConnector(sc.getConf).withSessionDo { session =>
       session.execute(CassandraUtil.checklistKeySpaceCreate)
       session.execute(CassandraUtil.checklistTableCreate)
+      session.execute(CassandraUtil.checklistRegistryTableCreate)
       session.execute(s"TRUNCATE idigbio.checklist")
     }
     val otherLines = Seq(("Mammalia|Insecta", "LINE(1 2 3 4)", "checklist item", 1)
@@ -79,6 +82,9 @@ class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
 
     val rdd = sc.parallelize(otherLines)
       .saveToCassandra("idigbio", "checklist", CassandraUtil.checklistColumns)
+
+    sc.parallelize(Seq(("bla|bla", "something", "running", 123L)))
+      .saveToCassandra("idigbio", "checklist_registry", CassandraUtil.checklistRegistryColumns)
 
   }
 
