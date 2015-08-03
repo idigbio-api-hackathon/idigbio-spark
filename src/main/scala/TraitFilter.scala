@@ -1,7 +1,9 @@
 
 
 object TraitFilter {
-  def measurementAndUnit = List("Measurement URI", "Units URI (normalized)")
+  def unit: String = "Units URI (normalized)"
+
+  def measurementAndUnit = List("Measurement URI", unit)
 
   def value = "Value"
 
@@ -12,12 +14,47 @@ object TraitFilter {
   def maxValue = "maxValue"
 
   def hasTrait(traitSelector: Map[String, String], record: Map[String, String]): Boolean = {
+    def traitMax(s: Map[String, String]) = normalizeTraitSelector(s, maxValue)
+    def traitMin(s: Map[String, String]) = normalizeTraitSelector(s, minValue)
+    val normalizedTraitSelector = (traitMax _ andThen traitMin andThen traitOption) (traitSelector)
+    val normalizedRecord = normalizeTraitRecord(record)
+
     !Seq(
-      sameMeasurementAndUnit(traitSelector, record),
-      valueInOptions(traitSelector, record),
-      valueLessThan(traitSelector, record),
-      valueGreaterThan(traitSelector, record)
+      compatibleMeasurementAndUnit(normalizedTraitSelector, normalizedRecord),
+      valueInOptions(normalizedTraitSelector, normalizedRecord),
+      valueLessThan(normalizedTraitSelector, normalizedRecord),
+      valueGreaterThan(normalizedTraitSelector, normalizedRecord)
     ).contains(false)
+  }
+
+  def normalizeTraitSelector(aTrait: Map[String, String], valueSelector: String): Map[String, String] = {
+    (aTrait.get(unit), aTrait.get(valueSelector)) match {
+      case (Some("http://purl.obolibrary.org/obo/UO_0000009"), Some(aValue)) => {
+        aTrait ++ Map(unit -> "http://purl.obolibrary.org/obo/UO_0000021"
+          , valueSelector -> (aValue.toFloat * 1000.0).toString)
+      }
+      case _ => aTrait
+    }
+  }
+
+  def traitOption(aTrait: Map[String, String]): Map[String, String] = {
+    (aTrait.get(unit), aTrait.get(valueOptions)) match {
+      case (Some("http://purl.obolibrary.org/obo/UO_0000009"), Some(aValue)) => {
+        val normalizedOptions = splitOptions(aValue).map(_.toFloat * 1000.0).mkString("|")
+        aTrait ++ Map(unit -> "http://purl.obolibrary.org/obo/UO_0000021"
+          , valueOptions -> normalizedOptions)
+      }
+      case _ => aTrait
+    }
+  }
+
+  def normalizeTraitRecord(aTrait: Map[String, String]): Map[String, String] = {
+    (aTrait.get(unit), aTrait.get(value)) match {
+      case (Some("http://purl.obolibrary.org/obo/UO_0000009"), Some(aValue)) => {
+        aTrait ++ Map(unit -> "http://purl.obolibrary.org/obo/UO_0000021", value -> (aValue.toFloat * 1000.0).toString)
+      }
+      case _ => aTrait
+    }
   }
 
   def valueGreaterThan(traitSelector: Map[String, String], record: Map[String, String]): Boolean = {
@@ -39,14 +76,18 @@ object TraitFilter {
   def valueInOptions(traitSelector: Map[String, String], record: Map[String, String]): Boolean = {
     (traitSelector.get(valueOptions), record.get(value)) match {
       case (Some(valueSelector), Some(aValue)) => {
-        valueSelector.split( """\|""").contains(aValue)
+        splitOptions(valueSelector).contains(aValue)
       }
       case (Some(valueSelector), None) => false
       case _ => true
     }
   }
 
-  def sameMeasurementAndUnit(traitSelector: Map[String, String], record: Map[String, String]): Boolean = {
+  def splitOptions(valueSelector: String): Array[String] = {
+    valueSelector.split( """\|""")
+  }
+
+  def compatibleMeasurementAndUnit(traitSelector: Map[String, String], record: Map[String, String]): Boolean = {
     measurementAndUnit
       .flatMap(record get)
       .equals(measurementAndUnit.flatMap(traitSelector get))

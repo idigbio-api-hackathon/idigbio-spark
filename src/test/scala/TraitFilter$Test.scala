@@ -16,6 +16,15 @@ class TraitFilter$Test extends FlatSpec with Matchers {
     )) shouldBe false
   }
 
+  "row with exact trait value match with compatible but different unit" should "return true" in {
+    val traitSelector = Map("Measurement URI" -> "http://purl.obolibrary.org/obo/VT_0001259"
+      , "Units URI (normalized)" -> "http://purl.obolibrary.org/obo/UO_0000021"
+      , "values" -> "123000")
+
+    TraitFilter.hasTrait(traitSelector, measurementAndUnit ++ Map("Value" -> "123"
+    )) shouldBe false
+  }
+
   "row with exact trait value match but measurement mismatch" should "return true" in {
     val traitSelector = Map("Measurement URI" -> "boo baa"
       , "Units URI (normalized)" -> "http://purl.obolibrary.org/obo/UO_0000009"
