@@ -1,7 +1,9 @@
 language: scala
 scala:
-  - 2.10.4
+  - 2.10.5
 sudo: false
+services:
+  - cassandra
 cache:
   directories:
       - $HOME/.ivy2

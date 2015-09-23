@@ -1,10 +1,8 @@
-import com.datastax.spark.connector.embedded.EmbeddedCassandra
-import org.apache.cassandra.service.EmbeddedCassandraService
+import com.datastax.spark.connector._
+import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest._
-import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector._
 
 class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
 
@@ -69,10 +67,7 @@ class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
     checklistAll should contain("Mini mousus", 1)
   }
 
-  // cassandra can run embedded, but has a library dependency conflict with spark
-  // this test assumes a running local cassandra instance
-  @Ignore def `"concatenating rows" should "be saved to cassandra" in` {
-    //"concatenating rows" should "be saved to cassandra" in {
+  "concatenating rows" should "be saved to cassandra" in {
     CassandraConnector(sc.getConf).withSessionDo { session =>
       session.execute(CassandraUtil.checklistKeySpaceCreate)
       session.execute(CassandraUtil.checklistTableCreate)
@@ -87,7 +82,6 @@ class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
 
     sc.parallelize(Seq(("bla|bla", "something", "running", 123L)))
       .saveToCassandra("idigbio", "checklist_registry", CassandraUtil.checklistRegistryColumns)
-
   }
 
 
