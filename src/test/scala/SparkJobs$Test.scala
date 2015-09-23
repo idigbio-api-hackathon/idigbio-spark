@@ -1,3 +1,5 @@
+import java.io.IOException
+
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.rdd.RDD
@@ -67,7 +69,9 @@ class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
     checklistAll should contain("Mini mousus", 1)
   }
 
+
   "concatenating rows" should "be saved to cassandra" in {
+    try {
     CassandraConnector(sc.getConf).withSessionDo { session =>
       session.execute(CassandraUtil.checklistKeySpaceCreate)
       session.execute(CassandraUtil.checklistTableCreate)
@@ -82,6 +86,11 @@ class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
 
     sc.parallelize(Seq(("bla|bla", "something", "running", 123L)))
       .saveToCassandra("idigbio", "checklist_registry", CassandraUtil.checklistRegistryColumns)
+    } catch {
+      case e: IOException => {
+        fail("failed to connect to cassandra. do you have it running?", e);
+      }
+    }
   }
 
 
