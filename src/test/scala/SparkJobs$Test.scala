@@ -48,22 +48,18 @@ class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
       , """222044,Sargochromis carlottae,Rainbow Happy,body mass,"1,000",http://purl.obolibrary.org/obo/VT_0001259,"",g,http://purl.obolibrary.org/obo/UO_0000021,"1,000",g,http://purl.obolibrary.org/obo/UO_0000021,FishBase,http://eol.org/content_partners/2/resources/42,"<a href=""http://www.fishbase.org/summary/SpeciesSummary.php?id=5364"">http://www.fishbase.org/summary/SpeciesSummary.php?id=5364</a>",,,max,,,,"Skelton, P.H.0 A complete guide to the freshwater fishes of southern Africa. Southern Book Publishers. 388 p. (Ref. 7248)",Susan M. Luna"""
       , """1003713,Netuma thalassina,Giant Catfish,body mass,"1,000",http://purl.obolibrary.org/obo/VT_0001259,"",g,http://purl.obolibrary.org/obo/UO_0000021,"1,000",g,http://purl.obolibrary.org/obo/UO_0000021,FishBase,http://eol.org/content_partners/2/resources/42,"<a href=""http://www.fishbase.org/summary/SpeciesSummary.php?id=10220"">http://www.fishbase.org/summary/SpeciesSummary.php?id=10220</a>",,,max,,"Netuma thalassina (Rüppell, 1837)",,"Bykov, V.P.0 Marine Fishes: Chemical composition and processing properties. New Delhi: Amerind Publishing Co. Pvt. Ltd. 322 p. (Ref. 4883)",Pascualita Sa-a""")
     val header = new CSVParser().parseLine(headers)
-    val firstLine = new CSVParser().parseLine(fourLines.head)
-    val aRecord: Map[String, String] = (header.toSeq zip firstLine).toMap
 
+    val actualTraitFilter: Map[String, String] = TraitFilter.parseTraitConfig( """bodyMass greaterThan 500 g""")
 
     val rdd = sc.parallelize(fourLines)
+    val selectedRows = rdd
+      .flatMap(RecordLinker.parseLine)
+      .map(fields => header zip fields)
+      .filter(record => TraitFilter.hasTrait(actualTraitFilter, record.toSeq.toMap))
+      .count()
 
-    val actualTraitFilter: Map[String, String] = TraitFilter.parseTraitConfig( """bodyMass greaterThan 1200 g""")
+    selectedRows shouldBe 4
 
-    val expectedTraitFilterConfig = Map(
-      """Measurement URI""" -> """http://purl.obolibrary.org/obo/VT_0001259""",
-      """Units URI (normalized)""" -> """http://purl.obolibrary.org/obo/UO_0000021""",
-      """minValue""" -> """1200"""
-    )
-
-    actualTraitFilter should be(expectedTraitFilterConfig)
-    TraitFilter.hasTrait(actualTraitFilter, aRecord) shouldBe true
   }
 
   "concatenating rows" should "link the record with the concatenated values" in {

@@ -24,7 +24,11 @@ object TraitFilter {
       case (Some(aValue), Some(fromUnit)) =>
         factor(toUnit, conversions, fromUnit) match {
           case Some(aFactor) =>
-            Some(aFactor * BigDecimal(aValue))
+            try {
+              Some(aFactor * BigDecimal(aValue.replace(",", "")))
+            } catch {
+              case _: NumberFormatException => None
+            }
           case _ =>
             None
         }
