@@ -17,12 +17,9 @@ object TraitFilter {
   def maxValue = "maxValue"
 
   def numericValueFor(record: Map[String, String], toUnit: String): Option[BigDecimal] = {
-    val conversions = Map(
-      "http://purl.obolibrary.org/obo/UO_0000009->http://purl.obolibrary.org/obo/UO_0000021" -> BigDecimal(1000.0)
-      , "http://purl.obolibrary.org/obo/UO_0000021->http://purl.obolibrary.org/obo/UO_0000009" -> BigDecimal(1.0 / 1000.0))
     (record.get(value), record.get(unit)) match {
       case (Some(aValue), Some(fromUnit)) =>
-        factor(toUnit, conversions, fromUnit) match {
+        conversionFactor(fromUnit, toUnit) match {
           case Some(aFactor) =>
             try {
               Some(aFactor * BigDecimal(aValue.replace(",", "")))
@@ -37,7 +34,11 @@ object TraitFilter {
   }
 
 
-  def factor(toUnit: String, conversions: Map[String, BigDecimal], fromUnit: String): Option[BigDecimal] = {
+  def conversionFactor(fromUnit: String, toUnit: String): Option[BigDecimal] = {
+    val conversions = Map(
+      "http://purl.obolibrary.org/obo/UO_0000009->http://purl.obolibrary.org/obo/UO_0000021" -> BigDecimal(1000.0)
+      , "http://purl.obolibrary.org/obo/UO_0000021->http://purl.obolibrary.org/obo/UO_0000009" -> BigDecimal(1.0 / 1000.0))
+
     val factor =
       conversions.get(Seq(fromUnit, toUnit).mkString("->")) match {
         case Some(aFactor) =>
