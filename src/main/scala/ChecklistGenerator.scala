@@ -16,7 +16,6 @@ object ChecklistGenerator {
     val taxonSelector = args(1).split( """[\|,]""").toList
     val wktString = args(2).trim
 
-
     val conf = new SparkConf()
       .set("spark.cassandra.connection.host", "localhost")
       .setAppName("iDigBio-LD")
@@ -56,7 +55,7 @@ object ChecklistGenerator {
       .sortBy(_._2, ascending = false)
   }
 
-  def applySpatioTaxonomicFilter(headers: Seq[String], rdd: RDD[String], taxonSelector: List[String], wktString: String): RDD[Seq[(String, String)]] = {
+  def applySpatioTaxonomicFilter(headers: Seq[String], rdd: RDD[String], taxonSelector: List[String], wktString: String, traitSelector: List[String] = List()): RDD[Seq[(String, String)]] = {
     rdd
       .flatMap(RecordLinker.parseLine)
       .map(fields => headers zip fields)
