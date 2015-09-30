@@ -139,19 +139,19 @@ class SparkJobs$Test extends FlatSpec with BeforeAndAfterAll with Matchers {
         session.execute(CassandraUtil.checklistKeySpaceCreate)
         session.execute(CassandraUtil.checklistTableCreate)
         session.execute(CassandraUtil.checklistRegistryTableCreate)
-        session.execute(s"TRUNCATE idigbio.checklist")
+        session.execute(s"TRUNCATE effechecka.checklist")
       }
-      val otherLines = Seq(("Mammalia|Insecta", "LINE(1 2 3 4)", "checklist item", 1)
-        , ("Mammalia|Insecta", "LINE(1 2 3 4)", "other checklist item", 1))
+      val otherLines = Seq(("Mammalia|Insecta", "LINE(1 2 3 4)", "bodyMass greaterThan 19 g", "checklist item", 1)
+        , ("Mammalia|Insecta", "LINE(1 2 3 4)", "bodyMass greaterThan 19 g", "other checklist item", 1))
 
-      val rdd = sc.parallelize(otherLines)
-        .saveToCassandra("idigbio", "checklist", CassandraUtil.checklistColumns)
+      sc.parallelize(otherLines)
+        .saveToCassandra("effechecka", "checklist", CassandraUtil.checklistColumns)
 
-      sc.parallelize(Seq(("bla|bla", "something", "running", 123L)))
-        .saveToCassandra("idigbio", "checklist_registry", CassandraUtil.checklistRegistryColumns)
+      sc.parallelize(Seq(("bla|bla", "something", "trait|anotherTrait", "running", 123L)))
+        .saveToCassandra("effechecka", "checklist_registry", CassandraUtil.checklistRegistryColumns)
     } catch {
       case e: IOException => {
-        fail("failed to connect to cassandra. do you have it running?", e);
+        fail("failed to connect to cassandra. do you have it running?", e)
       }
     }
   }

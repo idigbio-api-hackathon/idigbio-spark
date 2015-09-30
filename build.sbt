@@ -1,6 +1,6 @@
 name := "iDigBio-LD"
 
-version := "1.0"
+version := "1.1"
 
 scalaVersion := "2.10.5"
 
@@ -21,3 +21,5 @@ libraryDependencies ++= Seq(
 
   "org.scalatest" % "scalatest_2.10" % "2.2.5" % "test"
 )
+
+test in assembly := {}
