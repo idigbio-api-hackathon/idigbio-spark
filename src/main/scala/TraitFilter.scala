@@ -1,4 +1,5 @@
-
+import scala.util.Success
+import scala.util.parsing.combinator._
 
 object TraitFilter {
 
@@ -16,7 +17,7 @@ object TraitFilter {
 
   def maxValue = "maxValue"
 
-  def numericValueFor(record: Map[String, String], toUnit: String): Option[BigDecimal] = {
+  def compatibleNumericValueFor(record: Map[String, String], toUnit: String): Option[BigDecimal] = {
     (record.get(value), record.get(unit)) match {
       case (Some(aValue), Some(fromUnit)) =>
         conversionFactor(fromUnit, toUnit) match {
@@ -70,7 +71,7 @@ object TraitFilter {
   }
 
   def valueGreaterThan(traitSelector: Map[String, String], record: Map[String, String]): Boolean = {
-    (traitSelector.get(minValue), numericValueFor(record, traitSelector.getOrElse(unit, ""))) match {
+    (traitSelector.get(minValue), compatibleNumericValueFor(record, traitSelector.getOrElse(unit, ""))) match {
       case (Some(minValueSelector), Some(aValue)) =>
         aValue > BigDecimal(minValueSelector)
       case (None, _) =>
@@ -81,7 +82,7 @@ object TraitFilter {
   }
 
   def valueLessThan(traitSelector: Map[String, String], record: Map[String, String]): Boolean = {
-    (traitSelector.get(maxValue), numericValueFor(record, traitSelector.getOrElse(unit, ""))) match {
+    (traitSelector.get(maxValue), compatibleNumericValueFor(record, traitSelector.getOrElse(unit, ""))) match {
       case (Some(maxValueSelector), Some(aValue)) =>
         aValue < BigDecimal(maxValueSelector)
       case (None, _) => true
@@ -90,13 +91,15 @@ object TraitFilter {
   }
 
   def valueInOptions(traitSelector: Map[String, String], record: Map[String, String]): Boolean = {
-    (traitSelector.get(valueOptions), numericValueFor(record, traitSelector.getOrElse(unit, ""))) match {
+    (traitSelector.get(valueOptions), compatibleNumericValueFor(record, traitSelector.getOrElse(unit, ""))) match {
       case (Some(valueSelector), Some(aValue)) =>
         val options = splitOptions(valueSelector)
         options.map(BigDecimal(_)).contains(aValue)
       case (Some(valueSelector), None) =>
-        (record.get(value), record.get(unit)) match {
-          case (Some(aValue), None) =>
+        (record.get(value), record.get(unit), traitSelector.get(unit)) match {
+          case (Some(aValue), None, None) =>
+            splitOptions(valueSelector).contains(aValue)
+          case (Some(aValue), Some(aUnit), None) =>
             splitOptions(valueSelector).contains(aValue)
           case _ => false
         }
@@ -114,28 +117,11 @@ object TraitFilter {
   }
 
   def parseTraitConfig(traitFilterConfig: String): Map[String, String] = {
-    val actualTraitFilterConfig = {
-      val terms = traitFilterConfig.split(" ")
-      val name = terms(0) match {
-        case """bodyMass""" => """http://purl.obolibrary.org/obo/VT_0001259"""
-        case _ => terms(0)
-      }
-      val operator = terms(1) match {
-        case """greaterThan""" => """minValue"""
-        case """lessThan""" => """maxValue"""
-        case _ => terms(1)
-      }
-      val unit = terms(3) match {
-        case """g""" => """http://purl.obolibrary.org/obo/UO_0000021"""
-        case """kg""" => """http://purl.obolibrary.org/obo/UO_0000009"""
-        case _ => terms(2)
-      }
-
-      Map( """Measurement URI""" -> name
-        , operator -> terms(2)
-        , """Units URI (normalized)""" -> unit)
+    TraitFilterConfigParser.parse(TraitFilterConfigParser.config, traitFilterConfig) match {
+      case TraitFilterConfigParser.Success(traitConfig, _) => traitConfig
+      case TraitFilterConfigParser.Failure(msg, _) => Map()
+      case TraitFilterConfigParser.Error(msg, _) => Map()
     }
-    actualTraitFilterConfig
   }
 
 }
