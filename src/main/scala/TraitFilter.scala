@@ -53,7 +53,7 @@ object TraitFilter {
     factor
   }
 
-  def hasTraits(traitSelectors: List[String], record: Map[String, String]): Boolean = {
+  def hasTraits(traitSelectors: Seq[String], record: Map[String, String]): Boolean = {
     traitSelectors
       .map(parseTraitConfig)
       .forall(hasTrait(_, record))

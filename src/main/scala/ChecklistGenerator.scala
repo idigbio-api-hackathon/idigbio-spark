@@ -71,4 +71,26 @@ object ChecklistGenerator {
       .flatMap(RecordLinker.parseLine)
       .map(fields => headers zip fields)
   }
+
+  def filterByTraits(checklist: RDD[(String, Int)], traits: RDD[Seq[(String, String)]], traitSelectors: Seq[String]): RDD[(String, Int)] = {
+      if (traitSelectors.isEmpty) {
+        checklist
+      } else {
+        val selectedNamesByTraitsRDD = traits
+          .filter(record => TraitFilter.hasTraits(traitSelectors, record.toMap))
+          .map(record => {
+          record.find(_._1 == "Scientific Name") match {
+            case Some((_, aName)) => (aName.trim, 1)
+            case _ => ("", 1)
+          }
+        }).distinct().filter(_._1.nonEmpty)
+
+        val keyedChecklistRDD = checklist.map(item => (item._1.split( """\|""").reverse.head.trim, (item._1, item._2)))
+
+        val checklistMatchingTraits = keyedChecklistRDD
+          .join(selectedNamesByTraitsRDD)
+          .map(item => item._2._1)
+        checklistMatchingTraits
+      }
+    }
 }
