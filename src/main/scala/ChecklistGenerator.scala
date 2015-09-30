@@ -27,6 +27,7 @@ object ChecklistGenerator {
     val occurrences: RDD[Seq[(String, String)]] = parseCSV(occurrenceFile, sc)
 
     val traitSelectors = args(4).trim.split( """[\|,]""").toSeq.filter(_.nonEmpty)
+    val traitSelectorString: String = traitSelectors.mkString("|")
     val traitsFile = args(5).trim
 
     val traits: RDD[Seq[(String, String)]] = parseCSV(traitsFile, sc)
@@ -41,14 +42,14 @@ object ChecklistGenerator {
           session.execute(CassandraUtil.checklistRegistryTableCreate)
           session.execute(CassandraUtil.checklistTableCreate)
         }
-        checklist.cache().map(item => (taxonSelectorString, wktString, item._1, item._2))
+        checklist.cache().map(item => (taxonSelectorString, wktString, traitSelectorString, item._1, item._2))
           .saveToCassandra("effechecka", "checklist", CassandraUtil.checklistColumns)
 
-        sc.parallelize(Seq((taxonSelectorString, wktString, "ready", checklist.count())))
+        sc.parallelize(Seq((taxonSelectorString, wktString, traitSelectorString, "ready", checklist.count())))
           .saveToCassandra("effechecka", "checklist_registry", CassandraUtil.checklistRegistryColumns)
       }
 
-      case _ => checklist.map(item => List(taxonSelectorString, wktString, item._1, item._2).mkString(","))
+      case _ => checklist.map(item => List(taxonSelectorString, wktString, traitSelectorString, item._1, item._2).mkString(","))
         .saveAsTextFile(occurrenceFile + ".checklist" + System.currentTimeMillis)
     }
 
