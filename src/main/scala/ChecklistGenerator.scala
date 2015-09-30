@@ -23,7 +23,11 @@ object ChecklistGenerator {
     val logData = sc.textFile(occurrenceFile).cache()
     val headers = new CSVParser().parseLine(logData.take(1).head)
 
-    val filtered = applySpatioTaxonomicFilter(headers, logData, taxonSelector, wktString)
+    val rows = readRows(headers, logData)
+
+
+
+    val filtered = applySpatioTaxonomicFilter(rows, taxonSelector, wktString)
     val sortedChecklist = countByTaxonAndSort(filtered)
 
     val output = if (args.length > 3) args(3).trim else ""
@@ -55,13 +59,16 @@ object ChecklistGenerator {
       .sortBy(_._2, ascending = false)
   }
 
-  def applySpatioTaxonomicFilter(headers: Seq[String], rdd: RDD[String], taxonSelector: List[String], wktString: String, traitSelector: List[String] = List()): RDD[Seq[(String, String)]] = {
-    rdd
-      .flatMap(RecordLinker.parseLine)
-      .map(fields => headers zip fields)
+  def applySpatioTaxonomicFilter(rows:  RDD[Seq[(String, String)]], taxonSelector: List[String], wktString: String, traitSelector: List[String] = List()): RDD[Seq[(String, String)]] = {
+    rows
       .filter(row => TaxonFilter.hasTaxa(taxonSelector, row.toMap))
       .filter(row => SpatialFilter.locatedIn(wktString, row.toMap))
   }
 
 
+  def readRows(headers: Seq[String], rdd: RDD[String]): RDD[Seq[(String, String)]] = {
+    rdd
+      .flatMap(RecordLinker.parseLine)
+      .map(fields => headers zip fields)
+  }
 }
