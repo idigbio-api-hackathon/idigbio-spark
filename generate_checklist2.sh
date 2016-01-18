@@ -1,2 +1,2 @@
 # using job server (see https://github.com/spark-jobserver/spark-jobserver)
-curl -d "Insecta|Mammalia ENVELOPE(-150,-50,40,10)" 'localhost:8090/jobs?appName=idigbio&classpath=ChecklistGenerator'
+curl -d "Insecta|Mammalia ENVELOPE(-150,-50,40,10)" 'localhost:8090/jobs?appName=idigbio&classPath=ChecklistGenerator'
