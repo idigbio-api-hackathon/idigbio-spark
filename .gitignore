@@ -3,3 +3,7 @@ target/
 project/.boot
 project/.ivy
 /bin/
+.cache-main
+.classpath
+.project
+.settings/
