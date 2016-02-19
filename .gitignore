@@ -2,3 +2,4 @@ target/
 .idea/
 project/.boot
 project/.ivy
+/bin/
