@@ -5,7 +5,7 @@ import com.datastax.spark.connector._
 import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.scalatest._
 
 trait TestSparkContext extends FlatSpec with Matchers with BeforeAndAfterAll {
@@ -168,46 +168,60 @@ class SparkJobs$Test extends TestSparkContext with DwCSparkHandler {
       }
     }
   }
-  "identifier as" should "al" in {
+  "linking identifier columns" should "produce a list of triples" in {
 
-    val occ = sqlContext.read.format("com.databricks.spark.csv").
-      option("header", "true").
-      option("inferSchema", "true").
-      load(getClass().getResource("idigbio/occurrence.txt").toExternalForm())
-    occ.count() should be(9)
+    val idigbio = readDwC.last
+    idigbio.count() should be(9)
 
-    val externalIdColumns = occ.schema.
+    val idColumnName: String = IdentifierUtil.idigbioId
+    val columnNames: List[String] = IdentifierUtil.idigBioColumns
+
+    val externalIdColumns = idigbio.schema.
       filter(_.dataType == org.apache.spark.sql.types.StringType).
-      map(_.name.trim).
-      filter(IdentifierUtil.idigBioColumns.contains(_))
+      map(_.name).
+      filter(columnNames.contains(_)).
+      map(name => Seq("`", name, "`").mkString(""))
 
-    val idsOnly = occ.select(IdentifierUtil.idigbioId, externalIdColumns: _*)
+    val idsOnly = idigbio.select(idColumnName, externalIdColumns: _*)
 
 
     def addLinks(res: Array[(String, String, String)], columnPair: (String, String)) = {
       val link_map = idsOnly
               .select(idsOnly(columnPair._1), idsOnly(columnPair._2))
 
+      // need to use RDD/DataFrame to make this scalable
       res ++ link_map
               .collect()
               .filter(row => row.getString(1).nonEmpty)
               .map(row => (row.getString(0), "relatesTo", row.getString(1)))
 
     }
-    val links = IdentifierUtil.mapTuples("id", externalIdColumns).foldLeft(Array[(String, String, String)]())(addLinks)
-    links.foreach(println(_))
+    val links = IdentifierUtil.mapTuples(idColumnName, externalIdColumns).foldLeft(Array[(String, String, String)]())(addLinks)
 
     links should contain(("008a28ae-9197-4561-8412-3596fe1984f4","relatesTo","KUMIP"))
   }
 
   "combining metas" should "turn up with aggregated records" in {
-    val metas = List("/gbif/meta.xml", "/idigbio/meta.xml") map {
-      getClass().getResource(_)
+    val occurrenceDFs: Seq[DataFrame] = readDwC
+
+    occurrenceDFs.length should be(2)
+
+    occurrenceDFs.head.columns should contain("http://rs.gbif.org/terms/1.0/gbifID")
+    occurrenceDFs.last.columns should contain("id")
+    occurrenceDFs.foreach {
+      _.columns should contain("http://rs.tdwg.org/dwc/terms/scientificName")
     }
-    handle(metas map {
-      _.toString
-    })
+
   }
 
 
+  def readDwC: Seq[DataFrame] = {
+    val metas = List("/gbif/meta.xml", "/idigbio/meta.xml") map {
+      getClass().getResource(_)
+    }
+    val occurrenceDFs = toDF(metas map {
+      _.toString
+    })
+    occurrenceDFs
+  }
 }

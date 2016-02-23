@@ -13,13 +13,13 @@ import DwC.Meta
 import scala.IllegalArgumentException
 
 trait DwCHandler {
-  def handle(metas: Seq[String])
+  def toDF(metas: Seq[String]) : Seq[DataFrame]
 }
 
 trait DwCSparkHandler extends DwCHandler {
   implicit var sqlContext: SQLContext
 
-  def handle(metas: Seq[String]) {
+  def toDF(metas: Seq[String]): Seq[DataFrame] = {
     val metaURLs: Seq[URL] = metas map { meta => new URL(meta) }
     val coreDFs = metaURLs map { metaURL: URL =>
       DwC.readMeta(metaURL) match {
@@ -27,10 +27,11 @@ trait DwCSparkHandler extends DwCHandler {
           val schema = StructType(meta.coreTerms map { StructField(_, StringType, true) } )
           meta.fileLocations map { fileLocation =>
             println(s"attempting to load [$fileLocation]...")
-            sqlContext.read.format("com.databricks.spark.csv")
+            val df = sqlContext.read.format("com.databricks.spark.csv")
               .option("delimiter", meta.delimiter)
               .schema(schema) 
-              .load(fileLocation.toString)        
+              .load(fileLocation.toString)
+            df.except(df.limit(meta.skipHeaderLines))
           }          
         }
         case None => { 
@@ -39,11 +40,7 @@ trait DwCSparkHandler extends DwCHandler {
         }
       }
     }
-    
-    val dfs: Seq[DataFrame] = coreDFs.flatten
-    val intersectSchema = dfs map { df => df.columns }
-    // should merge schemas here somewhere
-    
+    coreDFs.flatten
   }
 }
 
@@ -61,7 +58,7 @@ object DarwinCoreToParquet extends DwCSparkHandler {
           .setAppName("DwCToParquet")
         sqlContext = new SQLContext(new SparkContext(conf))
 
-        handle(config.archives)        
+        toDF(config.archives)
       }
       case None =>
       // arguments are bad, error message will have been displayed
