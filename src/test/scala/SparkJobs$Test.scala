@@ -181,19 +181,23 @@ class SparkJobs$Test extends TestSparkContext with DwCSparkHandler {
       map(_.name.trim).
       filter(IdentifierUtil.idigBioColumns.contains(_))
 
-    println("externalIdColumn: " + externalIdColumns)
-
     val idsOnly = occ.select(IdentifierUtil.idigbioId, externalIdColumns: _*)
-    println("ids only: " + idsOnly)
-    for ((startIdCol, endIdCol) <- IdentifierUtil.mapTuples("id", externalIdColumns)) {
 
+
+    def addLinks(res: Array[(String, String, String)], columnPair: (String, String)) = {
       val link_map = idsOnly
-        .select(idsOnly(startIdCol), idsOnly(endIdCol))
+              .select(idsOnly(columnPair._1), idsOnly(columnPair._2))
 
-      link_map
-        .take(10)
-        .foreach(println(_))
+      res ++ link_map
+              .collect()
+              .filter(row => row.getString(1).nonEmpty)
+              .map(row => (row.getString(0), "relatesTo", row.getString(1)))
+
     }
+    val links = IdentifierUtil.mapTuples("id", externalIdColumns).foldLeft(Array[(String, String, String)]())(addLinks)
+    links.foreach(println(_))
+
+    links should contain(("008a28ae-9197-4561-8412-3596fe1984f4","relatesTo","KUMIP"))
   }
 
   "combining metas" should "turn up with aggregated records" in {
