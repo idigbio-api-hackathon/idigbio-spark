@@ -28,12 +28,3 @@ class DarwinCoreToParquet$Test extends FlatSpec with Matchers {
   }
 
 }
-
-class DwCToParquet$Test extends TestSparkContext with DwCSparkHandler {
-  
-  "combining metas" should "turn up with aggregated records" in {
-    val metas = List("/gbif/meta.xml", "/idigbio/meta.xml") map { getClass().getResource(_) }    
-    handle(metas map { _.toString })        
-  }
-
-}
