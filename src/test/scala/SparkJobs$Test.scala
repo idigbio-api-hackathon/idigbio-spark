@@ -8,23 +8,29 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SQLContext
 import org.scalatest._
 
-trait TestSparkContext extends FlatSpec with Matchers with BeforeAndAfterAll {
-  implicit var sc: SparkContext = _
-  implicit var sqlContext: SQLContext = _
-
-  override def beforeAll() = {
+object TestSparkFactory {
+  
+  lazy val context: SparkContext = {
     val conf = new SparkConf()
       .set("spark.cassandra.connection.host", "localhost")
       .setMaster("local[2]")
       .setAppName("test-spark")
-    sc = new SparkContext(conf)
-    sqlContext = new SQLContext(sc)
+    new SparkContext(conf)
   }
+  
+  lazy val sqlContext: SQLContext = {
+    new SQLContext(context)
+  }
+  
+}
 
-  override def afterAll() = {
-    if (sc != null) {
-      sc.stop()
-    }
+trait TestSparkContext extends FlatSpec with Matchers with BeforeAndAfterAll {
+  implicit var sqlContext: SQLContext = _
+  implicit var sc: SparkContext = _
+  
+  override def beforeAll() = {
+    sc = TestSparkFactory.context
+    sqlContext = TestSparkFactory.sqlContext
   }
 
 }

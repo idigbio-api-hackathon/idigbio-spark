@@ -12,7 +12,7 @@ object IdentifierUtil {
       "dwc:occurrenceID",
       "dwc:associatedMedia",
       "dwc:catalogNumber",
-      "dwc:identificationReference",
+      "dwc:identificationReferences",
       "dwc:associatedSequences",
       "dwc:associatedOccurrences",
       "dwc:scientificNameID",
@@ -20,11 +20,11 @@ object IdentifierUtil {
       "dwc:relatedResourceID")
   }
 
-  def mapTuples(id: String, columnNames: List[String]): List[(String, String)] = {
+  def mapTuples(id: String, columnNames: Seq[String]): Seq[(String, String)] = {
     columnNames.map((id, _))
   }
 
-  def idigBioTuples: List[(String, String)] = {
+  def idigBioTuples: Seq[(String, String)] = {
     mapTuples("id", idigBioColumns)
   }
 
@@ -36,7 +36,7 @@ object IdentifierUtil {
 
   def gbifColumns: List[String] = {
     List("gbifID",
-      "bibliographicCitation",
+      "bibliographicCitations",
       "references",
       "associatedOccurrences",
       "associatedReferences",
