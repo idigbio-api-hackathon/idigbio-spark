@@ -6,7 +6,7 @@ import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{Row, DataFrame, SQLContext}
-import org.apache.spark.sql.types.{StructType,StructField,StringType}
+import org.apache.spark.sql.types.{StructType, StructField, StringType}
 import org.scalatest._
 
 trait TestSparkContext extends FlatSpec with Matchers with BeforeAndAfterAll {
@@ -169,41 +169,28 @@ class SparkJobs$Test extends TestSparkContext with DwCSparkHandler {
       }
     }
   }
-  "linking identifier columns" should "produce a list of connected triples" in {
+  "linking idigbio identifier columns" should "produce a list of connected triples" in {
 
     val idigbio = readDwC.last
     idigbio.count() should be(9)
 
-    val idColumnName: String = IdentifierUtil.idigbioId
-    val columnNames: List[String] = IdentifierUtil.idigBioColumns
-
-    def escapeColumnName(name: String): String = {
-      Seq("`", name, "`").mkString("")
-    }
-
-    val externalIdColumns = idigbio.schema.
-      filter(_.dataType == org.apache.spark.sql.types.StringType).
-      map(_.name).
-      filter(columnNames.contains(_)).
-      map(escapeColumnName)
-
-    val idsOnly = idigbio.select(idColumnName, externalIdColumns: _*)
-    val links = idsOnly
-            .flatMap(row => (2 to row.length).toSeq.map( index => Row(row.getString(0), "refers", row.getString(index-1))))
-            .filter(row => row.getString(2).nonEmpty)
-
-
-    val linkSchema =
-      StructType(
-        Seq("start_id","link_rel","end_id").map(fieldName => StructField(fieldName, StringType, true)))
-
-    val linkDF = sqlContext.createDataFrame(links, linkSchema)
+    val linkDF: DataFrame = createLinkDF(idigbio, IdentifierUtil.idigbioColumns)
     val collectedLinks = linkDF.collect()
     collectedLinks should contain(Row("008a28ae-9197-4561-8412-3596fe1984f4", "refers", "KUMIP"))
     collectedLinks should not contain Row("000b9be5-1cf6-4016-b3cb-7b4c3f4cabcb", "refers", "")
   }
 
+  "linking gbif identifier columns" should "produce a list of connected triples" in {
+    val idigbio = readDwC.head
+    idigbio.count() should be(9)
 
+    val linkDF: DataFrame = createLinkDF(idigbio, IdentifierUtil.gbifColumns)
+    val collectedLinks = linkDF.collect()
+    collectedLinks should contain(Row("904605700","refers","68BAECEE-E995-4F11-B7B5-88D252879345/141"))
+  }
+
+
+  
 
   "combining metas" should "turn up with aggregated records" in {
     val occurrenceDFs: Seq[DataFrame] = readDwC
@@ -228,4 +215,28 @@ class SparkJobs$Test extends TestSparkContext with DwCSparkHandler {
     })
     occurrenceDFs
   }
+  
+  def createLinkDF(occurrenceDF: DataFrame, columnNames: List[String]): DataFrame = {
+      def escapeColumnName(name: String): String = {
+        Seq("`", name, "`").mkString("")
+      }
+
+      val externalIdColumns = occurrenceDF.schema.
+        filter(_.dataType == org.apache.spark.sql.types.StringType).
+        map(_.name).
+        filter(columnNames.contains(_)).
+        map(escapeColumnName)
+
+      val idsOnly = occurrenceDF.select(externalIdColumns.head, externalIdColumns.tail: _*)
+      val links = idsOnly
+        .flatMap(row => (2 to row.length).toSeq.map(index => Row(row.getString(0), "refers", row.getString(index - 1))))
+        .filter(row => row.getString(2).nonEmpty)
+
+
+      val linkSchema =
+        StructType(
+          Seq("start_id", "link_rel", "end_id").map(fieldName => StructField(fieldName, StringType, true)))
+
+      sqlContext.createDataFrame(links, linkSchema)
+    }
 }
