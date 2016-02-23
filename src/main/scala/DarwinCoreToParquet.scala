@@ -8,6 +8,7 @@ import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector._
 import scopt._
 import java.net.URL
+import org.apache.spark.sql.types.{StructType, StructField, StringType}
 import DwC.Meta
 
 import scala.IllegalArgumentException
@@ -42,6 +43,30 @@ trait DwCSparkHandler extends DwCHandler {
     }
     coreDFs.flatten
   }
+  
+  def toLinkDF(occurrenceDF: DataFrame, columnNames: List[String]): DataFrame = {
+        def escapeColumnName(name: String): String = {
+          Seq("`", name, "`").mkString("")
+        }
+  
+        val externalIdColumns = occurrenceDF.schema.
+          filter(_.dataType == org.apache.spark.sql.types.StringType).
+          map(_.name).
+          filter(columnNames.contains(_)).
+          map(escapeColumnName)
+  
+        val idsOnly = occurrenceDF.select(externalIdColumns.head, externalIdColumns.tail: _*)
+        val links = idsOnly
+          .flatMap(row => (2 to row.length).toSeq.map(index => Row(row.getString(0), "refers", row.getString(index - 1))))
+          .filter(row => row.getString(2).nonEmpty)
+  
+  
+        val linkSchema =
+          StructType(
+            Seq("start_id", "link_rel", "end_id").map(fieldName => StructField(fieldName, StringType, true)))
+  
+        sqlContext.createDataFrame(links, linkSchema)
+      }
 }
 
 object DarwinCoreToParquet extends DwCSparkHandler {
