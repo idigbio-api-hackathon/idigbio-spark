@@ -1,7 +1,7 @@
 import au.com.bytecode.opencsv.CSVParser
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
-import org.apache.spark.{ SparkConf, SparkContext }
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 import com.datastax.spark.connector.cql.CassandraConnector
@@ -14,59 +14,54 @@ import DwC.Meta
 import scala.IllegalArgumentException
 
 trait DwCHandler {
-  def toDF(metas: Seq[String]) : Seq[DataFrame]
+  def toDF(metas: Seq[String]): Seq[(DwC.Meta, DataFrame)]
 }
 
 trait DwCSparkHandler extends DwCHandler {
   implicit var sqlContext: SQLContext
 
-  def toDF(metas: Seq[String]): Seq[DataFrame] = {
-    val metaURLs: Seq[URL] = metas map { meta => new URL(meta) }
-    val coreDFs = metaURLs map { metaURL: URL =>
-      DwC.readMeta(metaURL) match {
-        case Some(meta) => {
-          val schema = StructType(meta.coreTerms map { StructField(_, StringType, true) } )
-          meta.fileLocations map { fileLocation =>
-            println(s"attempting to load [$fileLocation]...")
-            val df = sqlContext.read.format("com.databricks.spark.csv")
-              .option("delimiter", meta.delimiter)
-              .schema(schema) 
-              .load(fileLocation.toString)
-            df.except(df.limit(meta.skipHeaderLines))
-          }          
-        }
-        case None => { 
-          println(s"nothing readable from [$metaURL]")
-          Seq(sqlContext.emptyDataFrame)
-        }
+  def toDF(metaLocators: Seq[String]): Seq[(DwC.Meta, DataFrame)] = {
+    val metaURLs: Seq[URL] = metaLocators map { meta => new URL(meta) }
+    val metas: Seq[DwC.Meta] = metaURLs flatMap { metaURL: URL => DwC.readMeta(metaURL) }
+    val metaDFTuples = metas map { meta: DwC.Meta =>
+      val schema = StructType(meta.coreTerms map {
+        StructField(_, StringType, true)
+      })
+      meta.fileLocations map { fileLocation =>
+        println(s"attempting to load [$fileLocation]...")
+        val df = sqlContext.read.format("com.databricks.spark.csv")
+          .option("delimiter", meta.delimiter)
+          .schema(schema)
+          .load(fileLocation.toString)
+        (meta, df.except(df.limit(meta.skipHeaderLines)))
       }
     }
-    coreDFs.flatten
+    metaDFTuples.flatten
   }
-  
+
   def toLinkDF(occurrenceDF: DataFrame, columnNames: List[String]): DataFrame = {
-        def escapeColumnName(name: String): String = {
-          Seq("`", name, "`").mkString("")
-        }
-  
-        val externalIdColumns = occurrenceDF.schema.
-          filter(_.dataType == org.apache.spark.sql.types.StringType).
-          map(_.name).
-          filter(columnNames.contains(_)).
-          map(escapeColumnName)
-  
-        val idsOnly = occurrenceDF.select(externalIdColumns.head, externalIdColumns.tail: _*)
-        val links = idsOnly
-          .flatMap(row => (2 to row.length).toSeq.map(index => Row(row.getString(0), "refers", row.getString(index - 1))))
-          .filter(row => row.getString(2).nonEmpty)
-  
-  
-        val linkSchema =
-          StructType(
-            Seq("start_id", "link_rel", "end_id").map(fieldName => StructField(fieldName, StringType, true)))
-  
-        sqlContext.createDataFrame(links, linkSchema)
-      }
+    def escapeColumnName(name: String): String = {
+      Seq("`", name, "`").mkString("")
+    }
+
+    val externalIdColumns = occurrenceDF.schema.
+      filter(_.dataType == org.apache.spark.sql.types.StringType).
+      map(_.name).
+      filter(columnNames.contains(_)).
+      map(escapeColumnName)
+
+    val idsOnly = occurrenceDF.select(externalIdColumns.head, externalIdColumns.tail: _*)
+    val links = idsOnly
+      .flatMap(row => (2 to row.length).toSeq.map(index => Row(row.getString(0), "refers", row.getString(index - 1))))
+      .filter(row => row.getString(2).nonEmpty)
+
+
+    val linkSchema =
+      StructType(
+        Seq("start_id", "link_rel", "end_id").map(fieldName => StructField(fieldName, StringType, true)))
+
+    sqlContext.createDataFrame(links, linkSchema)
+  }
 }
 
 object DarwinCoreToParquet extends DwCSparkHandler {
@@ -82,7 +77,6 @@ object DarwinCoreToParquet extends DwCSparkHandler {
           .set("spark.cassandra.connection.host", "localhost")
           .setAppName("DwCToParquet")
         sqlContext = new SQLContext(new SparkContext(conf))
-
         toDF(config.archives)
       }
       case None =>
@@ -94,7 +88,7 @@ object DarwinCoreToParquet extends DwCSparkHandler {
   def config(args: Array[String]): Option[Config] = {
     val parser = new scopt.OptionParser[Config]("dwcToParquet") {
       head("dwcToParquet", "0.x")
-      arg[String]("<dwc meta.xml url> ...") unbounded () required () action { (x, c) =>
+      arg[String]("<dwc meta.xml url> ...") unbounded() required() action { (x, c) =>
         c.copy(archives = c.archives :+ x)
       } text ("list of darwin core archives")
     }

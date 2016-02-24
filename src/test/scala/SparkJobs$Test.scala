@@ -171,9 +171,9 @@ class SparkJobs$Test extends TestSparkContext with DwCSparkHandler {
   "linking idigbio identifier columns" should "produce a list of connected triples" in {
 
     val idigbio = readDwC.last
-    idigbio.count() should be(9)
+    idigbio._2.count() should be(9)
 
-    val linkDF: DataFrame = toLinkDF(idigbio, IdentifierUtil.idigbioColumns)
+    val linkDF: DataFrame = toLinkDF(idigbio._2, IdentifierUtil.idigbioColumns)
     val collectedLinks = linkDF.collect()
     collectedLinks should contain(Row("008a28ae-9197-4561-8412-3596fe1984f4", "refers", "KUMIP"))
     collectedLinks should not contain Row("000b9be5-1cf6-4016-b3cb-7b4c3f4cabcb", "refers", "")
@@ -181,9 +181,9 @@ class SparkJobs$Test extends TestSparkContext with DwCSparkHandler {
 
   "linking gbif identifier columns" should "produce a list of connected triples" in {
     val gbif = readDwC.head
-    gbif.count() should be(9)
+    gbif._2.count() should be(9)
 
-    val linkDF: DataFrame = toLinkDF(gbif, IdentifierUtil.gbifColumns)
+    val linkDF: DataFrame = toLinkDF(gbif._2, IdentifierUtil.gbifColumns)
     val collectedLinks = linkDF.collect()
     collectedLinks should contain(Row("904605700","refers","68BAECEE-E995-4F11-B7B5-88D252879345/141"))
   }
@@ -192,7 +192,9 @@ class SparkJobs$Test extends TestSparkContext with DwCSparkHandler {
   
 
   "combining metas" should "turn up with aggregated records" in {
-    val occurrenceDFs: Seq[DataFrame] = readDwC
+    val occurrenceMetaDFs: Seq[(DwC.Meta,DataFrame)] = readDwC
+
+    val occurrenceDFs = occurrenceMetaDFs map (_._2)
 
     occurrenceDFs.length should be(2)
 
@@ -205,14 +207,13 @@ class SparkJobs$Test extends TestSparkContext with DwCSparkHandler {
   }
 
 
-  def readDwC: Seq[DataFrame] = {
+  def readDwC: Seq[(DwC.Meta, DataFrame)] = {
     val metas = List("/gbif/meta.xml", "/idigbio/meta.xml") map {
       getClass().getResource
     }
-    val occurrenceDFs = toDF(metas map {
+    toDF(metas map {
       _.toString
     })
-    occurrenceDFs
   }
   
 
