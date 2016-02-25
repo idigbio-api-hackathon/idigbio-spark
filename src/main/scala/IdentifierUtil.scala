@@ -3,11 +3,11 @@ import com.datastax.spark.connector.SomeColumns
 object IdentifierUtil {
 
   def idigbioColumns: List[String] = {
-    List("id") ++ dwcIdColumns
+    "id" :: dwcIdColumns
   }
 
   def gbifColumns: List[String] = {
-    List("http://rs.gbif.org/terms/1.0/gbifID") ++ dwcIdColumns
+    "http://rs.gbif.org/terms/1.0/gbifID" :: dwcIdColumns
   }
 
   def dwcIdColumns: List[String] = {

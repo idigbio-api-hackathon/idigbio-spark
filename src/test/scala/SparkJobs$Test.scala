@@ -28,7 +28,7 @@ trait TestSparkContext extends FlatSpec with Matchers with BeforeAndAfterAll {
   }
 }
 
-class SparkJobs$Test extends TestSparkContext with DwCSparkHandler {
+class SparkJobs$Test extends TestSparkContext with LinkIdentifiers with DwCSparkHandler {
 
   "combining header and rows" should "create a record map" in {
     val headers = """EOL page ID,Scientific Name,Common Name,Measurement,Value,Measurement URI,Value URI,Units (normalized),Units URI (normalized),Raw Value (direct from source),Raw Units (direct from source),Raw Units URI (normalized),Supplier,Content Partner Resource URL,source,citation,measurement method,statistical method,life stage,scientific name,measurement remarks,Reference,contributor"""
