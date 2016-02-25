@@ -14,13 +14,13 @@ import DwC.Meta
 import scala.IllegalArgumentException
 
 trait DwCHandler {
-  def toDF(metas: Seq[String]): Seq[(DwC.Meta, DataFrame)]
+  def toDF(metas: Seq[String]): Seq[(String, DataFrame)]
 }
 
 trait DwCSparkHandler extends DwCHandler {
   implicit var sqlContext: SQLContext
 
-  def toDF(metaLocators: Seq[String]): Seq[(DwC.Meta, DataFrame)] = {
+  def toDF(metaLocators: Seq[String]): Seq[(String, DataFrame)] = {
     val metaURLs: Seq[URL] = metaLocators map { meta => new URL(meta) }
     val metas: Seq[DwC.Meta] = metaURLs flatMap { metaURL: URL => DwC.readMeta(metaURL) }
     val metaDFTuples = metas map { meta: DwC.Meta =>
@@ -33,7 +33,7 @@ trait DwCSparkHandler extends DwCHandler {
           .option("delimiter", meta.delimiter)
           .schema(schema)
           .load(fileLocation.toString)
-        (meta, df.except(df.limit(meta.skipHeaderLines)))
+        (fileLocation, df.except(df.limit(meta.skipHeaderLines)))
       }
     }
     metaDFTuples.flatten
@@ -74,10 +74,11 @@ object DarwinCoreToParquet extends DwCSparkHandler {
     config(args) match {
       case Some(config) => {
         val conf = new SparkConf()
-          .set("spark.cassandra.connection.host", "localhost")
-          .setAppName("DwCToParquet")
+          .setAppName("dwc2parquet")
         sqlContext = new SQLContext(new SparkContext(conf))
-        toDF(config.archives)
+        for ((sourceLocation, df) <- toDF(config.archives)) {
+          df.write.format("parquet").save(sourceLocation + ".parquet")
+        }
       }
       case None =>
       // arguments are bad, error message will have been displayed

@@ -1,6 +1,6 @@
 name := "iDigBio-LD"
 
-version := "1.1"
+version := "1.2"
 
 scalaVersion := "2.10.5"
 
@@ -14,15 +14,14 @@ libraryDependencies ++= Seq(
   "com.github.scopt" %% "scopt" % "3.3.0",
   "com.databricks" % "spark-csv_2.10" % "1.3.0",
   "com.spatial4j" % "spatial4j" % "0.4.1",
-  "org.apache.spark" %% "spark-core" % "1.5.2" % "provided" excludeAll(
+  "org.apache.spark" %% "spark-sql" % "1.6.0" % "provided" excludeAll(
     ExclusionRule("org.slf4j", "slf4j-api"),
     ExclusionRule("com.google.guava", "guava")),
   "com.datastax.spark" %% "spark-cassandra-connector" % "1.5.0-M1" excludeAll(
     ExclusionRule("org.slf4j", "slf4j-api"),
     ExclusionRule("com.google.guava", "guava")),
 
-  "org.apache.spark" %% "spark-sql" % "1.5.2",
-  "org.scalatest" % "scalatest_2.10" % "2.2.5" % "test"
+  "org.scalatest" %% "scalatest" % "2.2.5" % "test"
 )
 
 test in assembly := {}

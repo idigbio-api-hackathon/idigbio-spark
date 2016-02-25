@@ -192,7 +192,7 @@ class SparkJobs$Test extends TestSparkContext with DwCSparkHandler {
   
 
   "combining metas" should "turn up with aggregated records" in {
-    val occurrenceMetaDFs: Seq[(DwC.Meta,DataFrame)] = readDwC
+    val occurrenceMetaDFs: Seq[(_,DataFrame)] = readDwC
 
     val occurrenceDFs = occurrenceMetaDFs map (_._2)
 
@@ -207,7 +207,7 @@ class SparkJobs$Test extends TestSparkContext with DwCSparkHandler {
   }
 
 
-  def readDwC: Seq[(DwC.Meta, DataFrame)] = {
+  def readDwC: Seq[(String, DataFrame)] = {
     val metas = List("/gbif/meta.xml", "/idigbio/meta.xml") map {
       getClass().getResource
     }
