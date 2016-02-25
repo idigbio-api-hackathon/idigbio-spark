@@ -209,7 +209,7 @@ class SparkJobs$Test extends TestSparkContext with DwCSparkHandler {
 
   def readDwC: Seq[(String, DataFrame)] = {
     val metas = List("/gbif/meta.xml", "/idigbio/meta.xml") map {
-      getClass().getResource
+      getClass.getResource
     }
     toDF(metas map {
       _.toString

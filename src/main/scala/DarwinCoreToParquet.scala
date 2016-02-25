@@ -25,7 +25,7 @@ trait DwCSparkHandler extends DwCHandler {
     val metas: Seq[DwC.Meta] = metaURLs flatMap { metaURL: URL => DwC.readMeta(metaURL) }
     val metaDFTuples = metas map { meta: DwC.Meta =>
       val schema = StructType(meta.coreTerms map {
-        StructField(_, StringType, true)
+        StructField(_, StringType)
       })
       meta.fileLocations map { fileLocation =>
         println(s"attempting to load [$fileLocation]...")
@@ -33,7 +33,8 @@ trait DwCSparkHandler extends DwCHandler {
           .option("delimiter", meta.delimiter)
           .schema(schema)
           .load(fileLocation.toString)
-        (fileLocation, df.except(df.limit(meta.skipHeaderLines)))
+        val exceptHeaders: DataFrame = df.except(df.limit(meta.skipHeaderLines))
+        (fileLocation, exceptHeaders)
       }
     }
     metaDFTuples.flatten

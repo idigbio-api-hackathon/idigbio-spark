@@ -12,4 +12,4 @@ $SPARK_HOME/bin/spark-submit \
 --deploy-mode cluster \
 --class DarwinCoreToParquet \
 file:///home/int/jobs/iDigBio-LD-assembly-1.2.jar \
-file:///home/int/data/idigbio-100k/meta.xml \
+file:///home/int/data/gbif/meta.xml \

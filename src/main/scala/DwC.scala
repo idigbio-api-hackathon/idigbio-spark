@@ -17,7 +17,7 @@ object DwC {
       case Some(d) => Integer.parseInt(d)
       case None    => 0
     }
-    val fieldTerms = (meta \\ "core" \\ "@term") map { _.text.replace(" ", "") }
+    val fieldTerms = (meta \\ "core" \\ "@term") map { _.text.replace(" ", "%20") }
     val baseURLParts = metaURL.toString.split("/").reverse.tail.reverse
     val locations = (meta \\ "core" \\ "location") map {
       location => (baseURLParts ++ List(location text)) mkString ("/")
