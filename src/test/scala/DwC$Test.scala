@@ -22,6 +22,20 @@ class DwC$Test extends FlatSpec with Matchers {
 
   }
 
+  "reading a idigbio meta.xml" should "returned an ordered list of columns headers" in {
+    val metaOpt = DwC.readMeta(getClass.getResource("/idigbio/meta.xml"))
+    metaOpt match {
+      case Some(meta) => {
+        meta.coreTerms should not contain "http://rs.tdwg.org/dwc/terms/ identificationQualifier"
+        meta.coreTerms should contain("http://rs.tdwg.org/dwc/terms/identificationQualifier")
+      }
+      case None => {
+        fail("expected some meta");
+      }
+    }
+
+  }
+
   "read a non existing meta.xml" should "blow up gracefully" in {
     val meta = DwC.readMeta(getClass().getResource("thisdoenstexist"))
     meta should be(None)
