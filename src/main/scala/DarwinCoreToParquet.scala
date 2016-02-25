@@ -76,6 +76,10 @@ object DarwinCoreToParquet extends DwCSparkHandler {
         val conf = new SparkConf()
           .setAppName("dwc2parquet")
         sqlContext = new SQLContext(new SparkContext(conf))
+        for (archive <- config.archives) {
+          println(s"attempting to process dwc meta [$archive]")
+        }
+
         for ((sourceLocation, df) <- toDF(config.archives)) {
           df.write.format("parquet").save(sourceLocation + ".parquet")
         }
