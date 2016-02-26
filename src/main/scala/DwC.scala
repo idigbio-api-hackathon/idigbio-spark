@@ -5,7 +5,7 @@ import java.io.File
 
 object DwC {
 
-  case class Meta(coreTerms: Seq[String], delimiter: String, fileLocations: Seq[String], skipHeaderLines: Int)
+  case class Meta(coreTerms: Seq[String], delimiter: String, quote: String, fileLocations: Seq[String], skipHeaderLines: Int)
 
   def readMeta(metaURL: URL): Option[Meta] = try {
     val meta = XML.load(metaURL)
@@ -13,6 +13,7 @@ object DwC {
       case Some(d) => d
       case None    => ","
     }
+    val quote = if (delimiter == """\t""") null else "\""
     val skipHeaderLines = (meta \\ "core" \\ "@ignoreHeaderLines") map { _ text } headOption match {
       case Some(d) => Integer.parseInt(d)
       case None    => 0
@@ -22,7 +23,7 @@ object DwC {
     val locations = (meta \\ "core" \\ "location") map {
       location => (baseURLParts ++ List(location text)) mkString ("/")
     }
-    Some(Meta(fieldTerms, delimiter, locations, skipHeaderLines))
+    Some(Meta(fieldTerms, delimiter, quote, locations, skipHeaderLines))
   } catch {
     case e: Exception =>
       println(s"failed to read from [$metaURL]")

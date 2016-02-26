@@ -9,6 +9,7 @@ class DwC$Test extends FlatSpec with Matchers {
     metaOpt match {
       case Some(meta) => {
         meta.delimiter should be("""\t""")
+        meta.quote should be(null)
         meta.skipHeaderLines should be(1)
         meta.coreTerms.size should be(224)
         meta.coreTerms should contain("http://rs.tdwg.org/dwc/terms/genus")
