@@ -29,7 +29,7 @@ trait TestSparkContext extends FlatSpec with Matchers with BeforeAndAfterAll {
   }
 }
 
-class SparkJobs$Test extends TestSparkContext with LinkIdentifiers with DwCSparkHandler {
+class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIdentifiers with DwCSparkHandler {
 
   "combining header and rows" should "create a record map" in {
     val headers = """EOL page ID,Scientific Name,Common Name,Measurement,Value,Measurement URI,Value URI,Units (normalized),Units URI (normalized),Raw Value (direct from source),Raw Units (direct from source),Raw Units URI (normalized),Supplier,Content Partner Resource URL,source,citation,measurement method,statistical method,life stage,scientific name,measurement remarks,Reference,contributor"""
@@ -224,20 +224,19 @@ class SparkJobs$Test extends TestSparkContext with LinkIdentifiers with DwCSpark
 
     val rdd: RDD[Row] = sc.parallelize(rows)
 
-    val anEdge = Edge(1L, 2L)
+    val moreRows = Seq(Row("src4", "refers", "dst1"),
+      Row("src5", "refers", "dst1"),
+      Row("src6", "refers", "dst2"))
 
-    val edges = rdd.map(row => IdentifierUtil.toEdge(row))
-    val vertices = rdd.flatMap(row => IdentifierUtil.toVertices(row)).distinct
+    val df1 = sc.parallelize(rows)
+    val df2 = sc.parallelize(moreRows)
+    val rankForIds = toRankDF(Seq(df1, df2))
 
-    val myGraph = Graph(vertices, edges, "nothing")
-
-    val ranks = myGraph.pageRank(0.0001).vertices
-    val ranksByVertex = vertices.join(ranks).map {
-     case (id, (vertex, rank)) => (rank, vertex)
-    }
-
-    println(ranksByVertex.sortByKey(false).take(5).mkString("\n"))
-
+    val top10: Array[(Double, String)] = rankForIds.take(10)
+    top10.head should be((0.66, "dst1"))
+    top10 should contain((0.66, "dst1"))
+    top10 should contain((0.15, "src1"))
+    top10 should contain((0.15, "src6"))
   }
 
 
