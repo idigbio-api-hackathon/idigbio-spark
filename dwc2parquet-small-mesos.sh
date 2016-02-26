@@ -10,9 +10,9 @@
 $SPARK_HOME/bin/spark-submit \
 --master mesos://apihack-c18.idigbio.org:7077 \
 --deploy-mode cluster \
---executor-memory 40G \
---driver-memory 6G \
---total-executor-cores 10 \
+--executor-memory 1G \
+--driver-memory 1G \
+--total-executor-cores 1 \
 --class DarwinCoreToParquet \
 file:///home/int/jobs/iDigBio-LD-assembly-1.3.1.jar \
-file:///home/int/data/gbif/meta.xml
+file:///home/int/data/idigbio-100k/meta.xml \

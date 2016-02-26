@@ -29,10 +29,10 @@ trait DwCSparkHandler extends DwCHandler {
       })
       meta.fileLocations map { fileLocation =>
         println(s"attempting to load [$fileLocation]...")
-        val df = sqlContext.read.format("com.databricks.spark.csv")
-          .option("delimiter", meta.delimiter)
-          .schema(schema)
-          .load(fileLocation.toString)
+        val df = sqlContext.read.format("com.databricks.spark.csv").
+          option("delimiter", meta.delimiter).
+          schema(schema).
+          load(fileLocation.toString)
         val exceptHeaders: DataFrame = df.except(df.limit(meta.skipHeaderLines))
         (fileLocation, exceptHeaders)
       }

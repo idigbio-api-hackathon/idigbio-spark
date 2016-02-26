@@ -28,14 +28,17 @@ trait LinkIdentifiers {
       map(escapeColumnName)
 
     val idsOnly = occurrenceDF.select(externalIdColumns.head, externalIdColumns.tail: _*)
-    val links = idsOnly
-      .flatMap(row => (2 to row.length).toSeq.map(index => Row(row.getString(0), "refers", row.getString(index - 1))))
-      .filter(row => row.getString(2).nonEmpty)
+    val links = idsOnly.
+      flatMap(row => (2 to row.length).toSeq.map(index => Row(row.getString(0), "refers", row.getString(index - 1)))).
+      filter(row => {
+        val endId = row.getString(2)
+        endId != null && endId.nonEmpty
+      })
 
 
     val linkSchema =
       StructType(
-        Seq("start_id", "link_rel", "end_id").map(fieldName => StructField(fieldName, StringType, true)))
+        Seq("start_id", "link_rel", "end_id").map(fieldName => StructField(fieldName, StringType)))
 
     sqlContext.createDataFrame(links, linkSchema)
   }

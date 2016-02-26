@@ -1,6 +1,6 @@
 name := "iDigBio-LD"
 
-version := "1.2"
+version := "1.3.1"
 
 scalaVersion := "2.10.5"
 
