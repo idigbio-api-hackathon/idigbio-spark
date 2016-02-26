@@ -187,7 +187,6 @@ class SparkJobs$Test extends TestSparkContext with LinkIdentifiers with DwCSpark
     val linkDF: DataFrame = toLinkDF(gbif._2, IdentifierUtil.gbifColumns)
     val collectedLinks = linkDF.collect()
     collectedLinks should contain(Row("904605700", "refers", "68BAECEE-E995-4F11-B7B5-88D252879345/141"))
-    collectedLinks should contain(Row("864912683", "refers", "68BAECEE-E995-4F11-B7B5-88D252879345/141"))
   }
 
 
