@@ -1,10 +1,22 @@
 import org.apache.spark.sql._
-import org.scalatest.{BeforeAndAfterAll, Matchers, FlatSpec}
+import org.scalatest.{FlatSpec, Matchers}
 
-class IdentifierUtil$Test extends FlatSpec with Matchers with BeforeAndAfterAll {
-  
+class IdentifierUtil$Test extends FlatSpec with Matchers {
+
   "a row" should "be transformed into a list of links" in {
-    val aRow = Row.fromTuple ("one", "two", "three")
+    val rows = Seq(Row("src1", "refers", "dst1"),
+      Row("src2", "refers", "dst1"),
+      Row("src3", "refers", "dst2"))
+
+    val rawEdges = rows.map(IdentifierUtil.toEdge)
+
+    rawEdges should contain((1768280580, 557222360))
+
+    val vertices = rows.flatMap {
+      IdentifierUtil.toVertices
+    } distinct
+
+    vertices should contain((1768280580, "src1"))
 
   }
 

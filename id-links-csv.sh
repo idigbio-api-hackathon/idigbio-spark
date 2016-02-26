@@ -6,6 +6,7 @@
 # SPARK_HOME: where apache has been installed
 #
 
+DATASET_DIR=file:///home/int/data/gbif-100k
 
 $SPARK_HOME/bin/spark-submit \
 --master mesos://apihack-c18.idigbio.org:7077 \
@@ -15,6 +16,6 @@ $SPARK_HOME/bin/spark-submit \
 --total-executor-cores 5 \
 --class LinkIdentifiersJob \
 file:///home/int/jobs/iDigBio-LD-assembly-1.3.1.jar \
--o file:///home/int/data/idigbio/id_links.txt \
+-o $DATASET_DIR/id_links.txt \
 -f com.databricks.spark.csv \
-file:///home/int/data/idigbio/occurrence.txt.parquet 
+$DATASET_DIR/occurrence.txt.parquet 

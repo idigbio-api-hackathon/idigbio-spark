@@ -15,4 +15,4 @@ $SPARK_HOME/bin/spark-submit \
 --total-executor-cores 1 \
 --class DarwinCoreToParquet \
 file:///home/int/jobs/iDigBio-LD-assembly-1.3.1.jar \
-file:///home/int/data/idigbio-100k/meta.xml \
+file:///home/int/data/gbif-100k/meta.xml \

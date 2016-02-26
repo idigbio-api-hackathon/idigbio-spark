@@ -6,6 +6,7 @@ import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{Row, DataFrame, SQLContext}
+import org.apache.spark.graphx._
 import org.scalatest._
 
 trait TestSparkContext extends FlatSpec with Matchers with BeforeAndAfterAll {
@@ -185,14 +186,15 @@ class SparkJobs$Test extends TestSparkContext with LinkIdentifiers with DwCSpark
 
     val linkDF: DataFrame = toLinkDF(gbif._2, IdentifierUtil.gbifColumns)
     val collectedLinks = linkDF.collect()
-    collectedLinks should contain(Row("904605700","refers","68BAECEE-E995-4F11-B7B5-88D252879345/141"))
+    collectedLinks should contain(Row("904605700", "refers", "68BAECEE-E995-4F11-B7B5-88D252879345/141"))
+    collectedLinks should contain(Row("864912683", "refers", "68BAECEE-E995-4F11-B7B5-88D252879345/141"))
   }
 
 
-  
+
 
   "combining metas" should "turn up with aggregated records" in {
-    val occurrenceMetaDFs: Seq[(_,DataFrame)] = readDwC
+    val occurrenceMetaDFs: Seq[(_, DataFrame)] = readDwC
 
     val occurrenceDFs = occurrenceMetaDFs map (_._2)
 
@@ -215,6 +217,29 @@ class SparkJobs$Test extends TestSparkContext with LinkIdentifiers with DwCSpark
       _.toString
     })
   }
-  
+
+  "creating a graph" should "leverage rows" in {
+    val rows = Seq(Row("src1", "refers", "dst1"),
+      Row("src2", "refers", "dst1"),
+      Row("src3", "refers", "dst2"))
+
+    val rdd: RDD[Row] = sc.parallelize(rows)
+
+    val anEdge = Edge(1L, 2L)
+
+    val edges = rdd.map(row => IdentifierUtil.toEdge(row))
+    val vertices = rdd.flatMap(row => IdentifierUtil.toVertices(row)).distinct
+
+    val myGraph = Graph(vertices, edges, "nothing")
+
+    val ranks = myGraph.pageRank(0.0001).vertices
+    val ranksByVertex = vertices.join(ranks).map {
+     case (id, (vertex, rank)) => (rank, vertex)
+    }
+
+    println(ranksByVertex.sortByKey(false).take(5).mkString("\n"))
+
+  }
+
 
 }

@@ -15,5 +15,5 @@ $SPARK_HOME/bin/spark-submit \
 --total-executor-cores 5 \
 --class LinkIdentifiersJob \
 file:///home/int/jobs/iDigBio-LD-assembly-1.3.1.jar \
--o file:///home/int/data/idigbio-100k/id_links.txt.parquet \
-file:///home/int/data/idigbio-100k/occurrence.txt.parquet 
+-o file:///home/int/data/gbif-100k/id_links.txt.parquet \
+file:///home/int/data/gbif-100k/occurrence.txt.parquet 

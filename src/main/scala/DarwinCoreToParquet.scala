@@ -31,6 +31,7 @@ trait DwCSparkHandler extends DwCHandler {
         println(s"attempting to load [$fileLocation]...")
         val df = sqlContext.read.format("com.databricks.spark.csv").
           option("delimiter", meta.delimiter).
+          option("quote", if (meta.delimiter == "\t") null else "\"").
           schema(schema).
           load(fileLocation.toString)
         val exceptHeaders: DataFrame = df.except(df.limit(meta.skipHeaderLines))

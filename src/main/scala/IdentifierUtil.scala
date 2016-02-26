@@ -1,4 +1,7 @@
-import com.datastax.spark.connector.SomeColumns
+import org.apache.spark.graphx.Edge
+import org.apache.spark.sql.Row
+
+import scala.util.hashing.MurmurHash3
 
 object IdentifierUtil {
 
@@ -24,6 +27,19 @@ object IdentifierUtil {
       "http://rs.tdwg.org/dwc/terms/scientificNameID",
       "http://rs.tdwg.org/dwc/terms/namePublishedIn",
       "http://rs.tdwg.org/dwc/terms/relatedResourceID")
+  }
+
+  def toEdge(row: Row) = {
+    Edge(MurmurHash3.stringHash(row.getString(0)),
+      MurmurHash3.stringHash(row.getString(2)),
+      row.getString(1))
+  }
+
+  def toVertices(row: Row) = {
+    val src = row.getString(0)
+    val dst = row.getString(2)
+    Seq((MurmurHash3.stringHash(src).toLong, src),
+      (MurmurHash3.stringHash(dst).toLong, dst))
   }
 
 
