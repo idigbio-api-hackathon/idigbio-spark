@@ -7,7 +7,7 @@
 #
 
 
-DATASET_DIR=file:///home/int/data/idigbio-100k
+DATASET_DIR=file:///home/int/data/idigbio
 
 $SPARK_HOME/bin/spark-submit \
 --master mesos://apihack-c18.idigbio.org:7077 \
@@ -16,7 +16,8 @@ $SPARK_HOME/bin/spark-submit \
 --driver-memory 6G \
 --total-executor-cores 5 \
 --class RankIdentifiersJob \
-file:///home/int/jobs/iDigBio-LD-assembly-1.3.4.jar \
+file:///home/int/jobs/iDigBio-LD-assembly-1.3.5.jar \
 -f com.databricks.spark.csv \
+-i com.databricks.spark.csv \
 -o $DATASET_DIR/rank_ids.txt \
-$DATASET_DIR/id_links.txt.parquet 
+$DATASET_DIR/id_links.txt
