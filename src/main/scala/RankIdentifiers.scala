@@ -19,7 +19,7 @@ trait RankIdentifiers {
 
   def toRankDF(linkDFs: Seq[RDD[Row]]): RDD[(Double, String)] = {
     val links = linkDFs.reduce((res, linkDF) => res.union(linkDF))
-    val edges = links.map(row => IdentifierUtil.toEdge(row))
+    val edges = links.flatMap(row => IdentifierUtil.toEdge(row)).distinct
     val vertices = links.flatMap(row => IdentifierUtil.toVertices(row)).distinct
 
     val idGraph = Graph(vertices, edges, "nothing")

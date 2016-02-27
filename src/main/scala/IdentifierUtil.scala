@@ -30,9 +30,14 @@ object IdentifierUtil {
   }
 
   def toEdge(row: Row) = {
-    Edge(MurmurHash3.stringHash(row.getString(0)),
-      MurmurHash3.stringHash(row.getString(2)),
-      row.getString(1))
+    if ((0 to 2).foldLeft(false) { (agg, i) => (agg || row.isNullAt(i)) }) {
+      None
+    }
+    else {
+      Some(Edge(MurmurHash3.stringHash(row.getString(0)),
+        MurmurHash3.stringHash(row.getString(2)),
+        row.getString(1)))
+    }
   }
 
   def toVertices(row: Row) = {
