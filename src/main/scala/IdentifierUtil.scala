@@ -30,10 +30,9 @@ object IdentifierUtil {
   }
 
   def toEdge(row: Row) = {
-    if ((0 to 2).foldLeft(false) { (agg, i) => (agg || row.isNullAt(i)) }) {
+    if (row.isNullAt(0) || row.isNullAt(1) || row.isNullAt(2)) {
       None
-    }
-    else {
+    } else {
       Some(Edge(MurmurHash3.stringHash(row.getString(0)),
         MurmurHash3.stringHash(row.getString(2)),
         row.getString(1)))
@@ -41,10 +40,14 @@ object IdentifierUtil {
   }
 
   def toVertices(row: Row) = {
-    val src = row.getString(0)
-    val dst = row.getString(2)
-    Seq((MurmurHash3.stringHash(src).toLong, src),
-      (MurmurHash3.stringHash(dst).toLong, dst))
+    if (row.isNullAt(0) || row.isNullAt(2)) {
+      Seq()
+    } else {
+      val src = row.getString(0)
+      val dst = row.getString(2)
+      Seq((MurmurHash3.stringHash(src).toLong, src),
+        (MurmurHash3.stringHash(dst).toLong, dst))
+    }
   }
 
 

@@ -27,7 +27,12 @@ class IdentifierUtil$Test extends FlatSpec with Matchers {
       Row("src3", "refers", "dst2"))
 
     val rawEdges = rows.flatMap(IdentifierUtil.toEdge)
-    rawEdges should contain(Edge(-725793238,-328124296,"refers"))
+    rawEdges should contain(Edge(-725793238, -328124296, "refers"))
+
+    val vertices = rows.flatMap {
+      IdentifierUtil.toVertices
+    } distinct
+
   }
 
 

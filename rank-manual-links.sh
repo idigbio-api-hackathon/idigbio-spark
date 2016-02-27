@@ -17,7 +17,7 @@ $SPARK_HOME/bin/spark-submit \
 --driver-memory 6G \
 --total-executor-cores 5 \
 --class RankIdentifiersJob \
-file:///home/int/jobs/iDigBio-LD-assembly-1.3.4.jar \
+file:///home/int/jobs/iDigBio-LD-assembly-1.3.5.jar \
 -f com.databricks.spark.csv \
 -o $DATASET_DIR/rank_ids.txt \
 -i com.databricks.spark.csv \
