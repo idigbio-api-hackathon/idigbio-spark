@@ -73,7 +73,7 @@ object DarwinCoreToParquet extends DwCSparkHandler {
       head("dwcToParquet", "0.x")
       arg[String]("<dwc meta.xml url> ...") unbounded() required() action { (x, c) =>
         c.copy(archives = c.archives :+ x)
-      } text ("list of darwin core archives")
+      } text "list of darwin core archives"
     }
 
     parser.parse(args, Config())

@@ -14,6 +14,5 @@ $SPARK_HOME/bin/spark-submit \
 --driver-memory 6G \
 --total-executor-cores 10 \
 --class DarwinCoreToParquet \
---conf spark.local.dir=/home/int/data/tmp \
-file:///home/int/jobs/iDigBio-LD-assembly-1.3.4.jar \
+file:///home/int/jobs/iDigBio-LD-assembly-1.3.5.jar \
 file:///home/int/data/gbif/meta.xml
