@@ -22,20 +22,23 @@ object SpatialFilter {
   def locatedIn(wktString: String, record: Map[String, String]): Boolean = {
     val values = List("dwc:decimalLatitude", "dwc:decimalLongitude") flatMap (record get)
     if (values.size == 2) {
-      (parseDouble(values.head), parseDouble(values.tail.head)) match {
-        case (Some(lat), Some(lng)) =>
-          (parseWkt(wktString), parsePoint(lng, lat)) match {
-            case (Some(area), Some(point)) =>
-              List(SpatialRelation.CONTAINS, SpatialRelation.INTERSECTS, SpatialRelation.WITHIN)
-                .contains(area.relate(point))
-            case _ => false
-          }
-        case _ => false
-      }
+      locatedInLatLng(wktString, values)
     } else {
       false
     }
   }
 
 
+  def locatedInLatLng(wktString: String, values: Seq[String]): Boolean = {
+    (parseDouble(values.head), parseDouble(values.last)) match {
+      case (Some(lat), Some(lng)) =>
+        (parseWkt(wktString), parsePoint(lng, lat)) match {
+          case (Some(area), Some(point)) =>
+            List(SpatialRelation.CONTAINS, SpatialRelation.INTERSECTS, SpatialRelation.WITHIN)
+              .contains(area.relate(point))
+          case _ => false
+        }
+      case _ => false
+    }
+  }
 }

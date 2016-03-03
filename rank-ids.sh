@@ -18,8 +18,8 @@ $SPARK_HOME/bin/spark-submit \
 --class RankIdentifiersJob \
 file:///home/int/jobs/iDigBio-LD-assembly-1.3.5.jar \
 -f com.databricks.spark.csv \
--i com.databricks.spark.csv \
--o $DATASET_DIR/rank_ids_manual_idigbio-100k_gbif-100k.txt \
-$DATASET_DIR/idigbio-100k/id_links.txt \
-$DATASET_DIR/gbif-100k/id_links.txt \
-$DATASET_DIR/phoibos2/**/*id_links.csv 
+-i parquet \
+-o $DATASET_DIR/rank_ids_manual_idigbio_gbif.txt \
+$DATASET_DIR/idigbio/id_links.txt.parquet \
+$DATASET_DIR/gbif/id_links.txt.parquet \
+$DATASET_DIR/phoibos2/id_links.csv.parquet 

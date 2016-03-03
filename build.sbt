@@ -1,10 +1,11 @@
 name := "iDigBio-LD"
 
-version := "1.3.5"
+version := "1.4.0"
 
 scalaVersion := "2.10.5"
 
 val sparkV: String = "1.6.0"
+
 libraryDependencies ++= Seq(
   "org.littleshoot" % "littleshoot-commons-id" % "1.0.3" excludeAll (
     ExclusionRule("org.slf4j", "slf4j-api")),
