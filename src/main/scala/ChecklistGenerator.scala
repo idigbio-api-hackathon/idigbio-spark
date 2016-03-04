@@ -170,22 +170,19 @@ object ChecklistBuilder {
     val availableTerms: Seq[String] = (locationTerms ::: taxonNameTerms) intersect df.columns.map(_.mkString("`", "", "`"))
     val availableTaxonTerms = taxonNameTerms.intersect(availableTerms)
 
-    val checklist = {
-      if (availableTerms.containsSlice(locationTerms) && availableTaxonTerms.nonEmpty) {
-        val withPath = df.select(availableTerms.map(col): _*)
-          .withColumn("taxonPath", concat_ws("|", availableTaxonTerms.map(col): _*))
-        withPath.select(locationTerms.head, locationTerms.last, "taxonPath")
-          .as[(String, String, String)]
-          .filter(p => taxa.intersect(p._3.split("\\|")).nonEmpty)
-          .filter(p => SpatialFilter.locatedInLatLng(wkt, Seq(p._1, p._2)))
-          .map(p => (p._3, 1))
-          .rdd.reduceByKey(_ + _)
-          .sortBy(_._2, ascending = false)
-      } else {
-        sc.emptyRDD[(String, Int)]
-      }
+    if (availableTerms.containsSlice(locationTerms) && availableTaxonTerms.nonEmpty) {
+      val withPath = df.select(availableTerms.map(col): _*)
+        .withColumn("taxonPath", concat_ws("|", availableTaxonTerms.map(col): _*))
+      withPath.select(locationTerms.head, locationTerms.last, "taxonPath")
+        .as[(String, String, String)]
+        .filter(p => taxa.intersect(p._3.split("\\|")).nonEmpty)
+        .filter(p => SpatialFilter.locatedInLatLng(wkt, Seq(p._1, p._2)))
+        .map(p => (p._3, 1))
+        .rdd.reduceByKey(_ + _)
+        .sortBy(_._2, ascending = false)
+    } else {
+      sc.emptyRDD[(String, Int)]
     }
-    checklist
   }
 }
 
