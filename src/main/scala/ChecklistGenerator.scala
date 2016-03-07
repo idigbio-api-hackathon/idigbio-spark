@@ -110,12 +110,11 @@ object ChecklistGenerator {
         }).distinct().filter(_._1.nonEmpty)
 
       val keyedChecklistRDD = checklist.map(item => {
-        val lastNameInChecklistTaxonPath: String = item._1.split( """\|""").last.trim
-        val scientificName = snp.fromString(lastNameInChecklistTaxonPath)
-        val nameForMatching = scientificName.canonized(false) match {
-          case Some(canonizedName) => canonizedName
-          case None => lastNameInChecklistTaxonPath
-        }
+        val lastNameInTaxonPath: String = item._1.split( """\|""").last.trim
+        val scientificName = snp.fromString(lastNameInTaxonPath)
+        val nameForMatching = scientificName
+          .canonized(showRanks = false)
+          .getOrElse(lastNameInTaxonPath)
         (nameForMatching, (item._1, item._2))
       })
 
