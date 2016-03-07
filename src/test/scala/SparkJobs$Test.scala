@@ -78,6 +78,18 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
     checklistMatchingTraits.collect() should not contain( """bla | boo | Netuma thalassina""", 11)
   }
 
+  "checklist with scientific name authorship" should "be filtered using trait filter" in {
+    val (checklist: RDD[(String, Int)], traits: RDD[Seq[(String, String)]]) = traitsAndChecklistWithAuthorName
+
+    val traitSelectors: Seq[String] = """bodyMass greaterThan 1025 g|bodyMass greaterThan 1 kg""".split( """[\|,]""")
+
+    val checklistMatchingTraits: RDD[(String, Int)] = ChecklistGenerator.filterByTraits(checklist, traits, traitSelectors)
+
+    checklistMatchingTraits.collect().length shouldBe 1
+    checklistMatchingTraits.collect() should contain( """bla | boo | Balaena mysticetus (Linnaeus, 1758)""", 23)
+    checklistMatchingTraits.collect() should not contain( """bla | boo | Netuma thalassina""", 11)
+  }
+
   "checklist" should "be not filtered on empty trait filter" in {
     val (checklist: RDD[(String, Int)], traits: RDD[Seq[(String, String)]]) = traitsAndChecklist
     val checklistMatchingTraits: RDD[(String, Int)] = ChecklistGenerator.filterByTraits(checklist, traits, Seq())
@@ -101,16 +113,23 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
 
   }
 
-
-
   def traitsAndChecklist: (RDD[(String, Int)], RDD[Seq[(String, String)]]) = {
-    val checklist = sc.parallelize(Seq(( """bla | boo | Balaena mysticetus""", 23), ( """bla | boo | Netuma thalassina""", 11), ( """bla | boo | Mickey mousus""", 12)))
+    traitAndChecklist("""bla | boo | Balaena mysticetus""")
+  }
+
+  def traitsAndChecklistWithAuthorName: (RDD[(String, Int)], RDD[Seq[(String, String)]]) = {
+    val firstTaxonPath = Seq("bla", "boo", "Balaena mysticetus (Linnaeus, 1758)").mkString(" | ")
+    traitAndChecklist(firstTaxonPath)
+  }
+
+
+  def traitAndChecklist(firstTaxonPath: String): (RDD[(String, Int)], RDD[Seq[(String, String)]]) = {
+    val checklist = sc.parallelize(Seq((firstTaxonPath, 23), ( """bla | boo | Netuma thalassina""", 11), ( """bla | boo | Mickey mousus""", 12)))
     val traitsRDD = sc.parallelize(fiveTraits)
 
     val traits = ChecklistGenerator.readRows(new CSVParser().parseLine(traitHeader), traitsRDD)
     (checklist, traits)
   }
-
 
   lazy val fiveTraits: Seq[String] = {
     Seq(

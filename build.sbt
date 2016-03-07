@@ -1,6 +1,6 @@
 name := "iDigBio-LD"
 
-version := "1.4.0"
+version := "1.4.1"
 
 scalaVersion := "2.10.5"
 
@@ -15,6 +15,7 @@ libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-csv" % "1.1",
   "com.github.scopt" %% "scopt" % "3.3.0",
   "com.databricks" % "spark-csv_2.10" % "1.3.0",
+  "org.globalnames" %% "gnparser" % "0.2.0",
   "com.spatial4j" % "spatial4j" % "0.4.1",
   "org.apache.spark" %% "spark-sql" % sparkV % "provided" excludeAll(
     ExclusionRule("org.slf4j", "slf4j-api"),

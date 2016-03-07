@@ -5,6 +5,8 @@ import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.spark.{SparkConf, SparkContext}
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector._
+import org.globalnames.parser.ScientificNameParser.{instance => snp}
+import org.json4s._
 
 object SQLContextSingleton {
   @transient private var instance: SQLContext = _
@@ -107,7 +109,15 @@ object ChecklistGenerator {
           }
         }).distinct().filter(_._1.nonEmpty)
 
-      val keyedChecklistRDD = checklist.map(item => (item._1.split( """\|""").reverse.head.trim, (item._1, item._2)))
+      val keyedChecklistRDD = checklist.map(item => {
+        val lastNameInChecklistTaxonPath: String = item._1.split( """\|""").last.trim
+        val scientificName = snp.fromString(lastNameInChecklistTaxonPath)
+        val nameForMatching = scientificName.canonized(false) match {
+          case Some(canonizedName) => canonizedName
+          case None => lastNameInChecklistTaxonPath
+        }
+        (nameForMatching, (item._1, item._2))
+      })
 
       val checklistMatchingTraits = keyedChecklistRDD
         .join(selectedNamesByTraitsRDD)
