@@ -265,7 +265,19 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
     collectedLinks should contain(Row("904605700", "refers", "68BAECEE-E995-4F11-B7B5-88D252879345/141"))
   }
 
+  "apply occurrence filter" should "select a few occurrences" in {
+    val idigbio = readDwC.head._2
+    val collection: RDD[(String, String, String, String, String)] = OccurrenceCollectionBuilder
+      .buildOccurrenceCollection(sc, idigbio, "ENVELOPE(4,5,52,50)", Seq("Plantae"))
 
+    collection.count() should be(9)
+
+    val anotherCollection: RDD[(String, String, String, String, String)] = OccurrenceCollectionBuilder
+      .buildOccurrenceCollection(sc, idigbio, "ENVELOPE(4,5,52,50)", Seq("Dactylis"))
+
+    anotherCollection.count() should be(1)
+
+  }
 
 
   "combining metas" should "turn up with aggregated records" in {

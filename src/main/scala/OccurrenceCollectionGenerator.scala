@@ -33,7 +33,7 @@ object OccurrenceCollectionGenerator {
           session.execute(CassandraUtil.occurrenceCollectionRegistryTableCreate)
           session.execute(CassandraUtil.occurrenceCollectionTableCreate)
         }
-        occurrenceCollection.take(1000).map(item => (taxonSelectorString, wktString, traitSelectorString, item._3, item._1, item._2, item._4, "http://some.record.url", System.currentTimeMillis(), "http://some.archive.url"))
+        occurrenceCollection.map(item => (taxonSelectorString, wktString, traitSelectorString, item._3, item._1, item._2, item._4, "http://some.record.url", System.currentTimeMillis(), "http://some.archive.url"))
           .saveToCassandra("effechecka", "occurrence_collection", CassandraUtil.occurrenceCollectionColumns)
 
         sc.parallelize(Seq((taxonSelectorString, wktString, traitSelectorString, "ready", occurrenceCollection.count())))
@@ -101,6 +101,14 @@ object OccurrenceCollectionBuilder {
     val availableTerms: Seq[String] = (locationTerms ::: taxonNameTerms ::: eventDateTerms) intersect df.columns.map(_.mkString("`", "", "`"))
     val availableTaxonTerms = taxonNameTerms.intersect(availableTerms)
 
+
+    import org.apache.spark.sql.functions.udf
+    val hasDate = udf(validDate(_: String))
+    val taxaSelected = udf((taxonPath: String) => taxa.intersect(taxonPath.split("\\|")).nonEmpty)
+    val locationSelected = udf((lat: String, lng: String) => {
+      SpatialFilter.locatedInLatLng(wkt, Seq(lat, lng))
+    })
+
     if (availableTerms.containsSlice(locationTerms)
       && availableTerms.containsSlice(eventDateTerms)
       && availableTaxonTerms.nonEmpty) {
@@ -109,10 +117,11 @@ object OccurrenceCollectionBuilder {
 
       val occColumns = locationTerms ::: List("taxonPath") ::: eventDateTerms
       withPath.select(occColumns.map(col): _*)
+        .filter(hasDate(col(eventDateTerms.head)))
+        .filter(taxaSelected(col("taxonPath")))
+        .filter(locationSelected(locationTerms.map(col):_*))
+        .limit(1000)
         .as[(String, String, String, String, String)]
-        .filter(p => validDate(p._4))
-        .filter(p => taxa.intersect(p._3.split("\\|")).nonEmpty)
-        .filter(p => SpatialFilter.locatedInLatLng(wkt, Seq(p._1, p._2)))
         .rdd
     } else {
       sc.emptyRDD[(String, String, String, String, String)]
