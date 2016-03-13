@@ -22,7 +22,6 @@ object OccurrenceCollectionGenerator {
     val occurrences: DataFrame = sqlContext.read.format("parquet").load(occurrenceFile)
     val occurrenceCollection = OccurrenceCollectionBuilder
       .buildOccurrenceCollection(sc, occurrences, wktString, taxonSelector)
-      .zipWithIndex.filter(_._2 < 100).keys
 
     val traitSelectors = config.traitSelector
     val traitSelectorString: String = traitSelectors.mkString("|")
@@ -34,7 +33,7 @@ object OccurrenceCollectionGenerator {
           session.execute(CassandraUtil.occurrenceCollectionRegistryTableCreate)
           session.execute(CassandraUtil.occurrenceCollectionTableCreate)
         }
-        occurrenceCollection.cache().map(item => (taxonSelectorString, wktString, traitSelectorString, item._3, item._1, item._2, item._4, "http://some.record.url", System.currentTimeMillis(), "http://some.archive.url"))
+        occurrenceCollection.take(1000).map(item => (taxonSelectorString, wktString, traitSelectorString, item._3, item._1, item._2, item._4, "http://some.record.url", System.currentTimeMillis(), "http://some.archive.url"))
           .saveToCassandra("effechecka", "occurrence_collection", CassandraUtil.occurrenceCollectionColumns)
 
         sc.parallelize(Seq((taxonSelectorString, wktString, traitSelectorString, "ready", occurrenceCollection.count())))
