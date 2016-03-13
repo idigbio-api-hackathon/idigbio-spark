@@ -9,10 +9,6 @@ val sparkV: String = "1.6.0"
 libraryDependencies ++= Seq(
   "org.littleshoot" % "littleshoot-commons-id" % "1.0.3" excludeAll (
     ExclusionRule("org.slf4j", "slf4j-api")),
-  "com.google.guava" % "guava" % "16.0.1",
-  "org.slf4j" % "slf4j-api" % "1.7.5",
-  "io.netty" % "netty" % "3.8.0.Final",
-  "io.netty" % "netty-all" % "4.0.33.Final",
   "net.sf.opencsv" % "opencsv" % "2.3",
   "org.apache.commons" % "commons-csv" % "1.1",
   "com.github.scopt" %% "scopt" % "3.3.0",
@@ -21,14 +17,8 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "com.fasterxml.jackson.core"),
     ExclusionRule(organization = "org.scala-lang")),
   "com.spatial4j" % "spatial4j" % "0.4.1",
-  "org.apache.spark" %% "spark-sql" % sparkV % "provided" excludeAll(
-    ExclusionRule(organization = "io.netty"),
-    ExclusionRule("org.slf4j", "slf4j-api"),
-    ExclusionRule("com.google.guava", "guava")),
-  "org.apache.spark" %% "spark-graphx" % sparkV % "provided" excludeAll(
-    ExclusionRule(organization = "io.netty"),
-    ExclusionRule("org.slf4j", "slf4j-api"),
-    ExclusionRule("com.google.guava", "guava")),
+  "org.apache.spark" %% "spark-sql" % sparkV % "provided",
+  "org.apache.spark" %% "spark-graphx" % sparkV % "provided",
   "com.datastax.spark" %% "spark-cassandra-connector" % "1.6.0-M1" excludeAll(
     ExclusionRule(organization = "io.netty"),
     ExclusionRule("org.slf4j", "slf4j-api"),
