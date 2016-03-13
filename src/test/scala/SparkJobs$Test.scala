@@ -223,6 +223,28 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
       }
     }
   }
+
+  "occurrence collection" should "be saved to cassandra" in {
+    try {
+      CassandraConnector(sc.getConf).withSessionDo { session =>
+        session.execute(CassandraUtil.checklistKeySpaceCreate)
+        session.execute(CassandraUtil.occurrenceCollectionTableCreate)
+        session.execute(CassandraUtil.occurrenceCollectionRegistryTableCreate)
+        session.execute(s"TRUNCATE effechecka.occurrence_collection")
+      }
+      val otherLines = Seq(("some taxonselector", "some wktstring", "some traitselector", "Animalia|Aves", "11.4", "12.2", "2013-05-03", "http://record1", "2014-03-04", "http://archive2"))
+
+      sc.parallelize(otherLines)
+        .saveToCassandra("effechecka", "occurrence_collection", CassandraUtil.occurrenceCollectionColumns)
+
+      sc.parallelize(Seq(("bla|bla", "something", "trait|anotherTrait", "running", 123L)))
+        .saveToCassandra("effechecka", "occurrence_collection_registry", CassandraUtil.occurrenceCollectionRegistryColumns)
+    } catch {
+      case e: IOException => {
+        fail("failed to connect to cassandra. do you have it running?", e)
+      }
+    }
+  }
   "linking idigbio identifier columns" should "produce a list of connected triples" in {
 
     val idigbio = readDwC.last
