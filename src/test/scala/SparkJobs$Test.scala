@@ -232,7 +232,7 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
         session.execute(CassandraUtil.occurrenceCollectionRegistryTableCreate)
         session.execute(s"TRUNCATE effechecka.occurrence_collection")
       }
-      val otherLines = Seq(("some taxonselector", "some wktstring", "some traitselector", "Animalia|Aves", "11.4", "12.2", "2013-05-03", "http://record1", "2014-03-04", "http://archive2"))
+      val otherLines = Seq(("some taxonselector", "some wktstring", "some traitselector", "Animalia|Aves", "11.4", "12.2", "2013-05-03", "http://record1", System.currentTimeMillis(), "http://archive2"))
 
       sc.parallelize(otherLines)
         .saveToCassandra("effechecka", "occurrence_collection", CassandraUtil.occurrenceCollectionColumns)

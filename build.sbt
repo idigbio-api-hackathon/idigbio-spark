@@ -9,6 +9,7 @@ val sparkV: String = "1.6.0"
 libraryDependencies ++= Seq(
   "org.littleshoot" % "littleshoot-commons-id" % "1.0.3" excludeAll (
     ExclusionRule("org.slf4j", "slf4j-api")),
+  "com.google.guava" % "guava" % "16.0.1",
   "net.sf.opencsv" % "opencsv" % "2.3",
   "org.apache.commons" % "commons-csv" % "1.1",
   "com.github.scopt" %% "scopt" % "3.3.0",

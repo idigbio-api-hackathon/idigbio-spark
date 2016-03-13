@@ -36,7 +36,7 @@ object OccurrenceCollectionGenerator {
           session.execute(CassandraUtil.occurrenceCollectionRegistryTableCreate)
           session.execute(CassandraUtil.occurrenceCollectionTableCreate)
         }
-        occurrenceCollection.cache().map(item => (taxonSelectorString, wktString, traitSelectorString, item._3, item._1, item._2, item._4, "http://some.record.url", "dateof(now())", "http://some.archive.url"))
+        occurrenceCollection.cache().map(item => (taxonSelectorString, wktString, traitSelectorString, item._3, item._1, item._2, item._4, "http://some.record.url", System.currentTimeMillis(), "http://some.archive.url"))
           .saveToCassandra("effechecka", "occurrence_collection", CassandraUtil.occurrenceCollectionColumns)
 
         sc.parallelize(Seq((taxonSelectorString, wktString, traitSelectorString, "ready", occurrenceCollection.count())))
