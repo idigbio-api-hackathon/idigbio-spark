@@ -15,7 +15,7 @@ $SPARK_HOME/bin/spark-submit \
 --class OccurrenceCollectionGenerator \
 file:///home/int/jobs/iDigBio-LD-assembly-1.5.0.jar \
 -f "cassandra" \
--c file:///home/int/data/idigbio/occurrence.txt.parquet \
+-c file:///home/int/data/gbif-idigbio.parquet \
 -t file:///home/int/data/traitbank/bodymass.csv \
 "\"Aves|Actinopterygii\"" \
 "\"ENVELOPE(-99.14062,-80.15625,30.86451022625836,23.765236889758672)\"" \
