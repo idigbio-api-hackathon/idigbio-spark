@@ -1,12 +1,12 @@
-import au.com.bytecode.opencsv.CSVParser
+import java.time.format.DateTimeFormatter
+
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.spark.{SparkConf, SparkContext}
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector._
-import org.globalnames.parser.ScientificNameParser.{instance => snp}
-import org.json4s._
+import org.joda.time.{Interval, DateTime, DateTimeZone}
 
 object OccurrenceCollectionGenerator {
 
@@ -113,12 +113,28 @@ object OccurrenceCollectionBuilder {
       val occColumns = locationTerms ::: List("taxonPath") ::: eventDateTerms
       withPath.select(occColumns.map(col): _*)
         .as[(String, String, String, String, String)]
+        .filter(p => validDate(p._4))
         .filter(p => taxa.intersect(p._3.split("\\|")).nonEmpty)
         .filter(p => SpatialFilter.locatedInLatLng(wkt, Seq(p._1, p._2)))
         .rdd
     } else {
       sc.emptyRDD[(String, String, String, String, String)]
     }
+  }
+
+  def validDate(dateString: String): Boolean = {
+    null != dateString && dateString.nonEmpty &&
+      (try {
+        new DateTime(dateString, DateTimeZone.getDefault)
+        true
+      } catch {
+        case e: IllegalArgumentException =>
+          try {
+            null != Interval.parse(dateString)
+          } catch {
+            case e: IllegalArgumentException => false
+          }
+      })
   }
 }
 
