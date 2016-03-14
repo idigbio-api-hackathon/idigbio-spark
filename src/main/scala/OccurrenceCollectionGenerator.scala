@@ -33,7 +33,7 @@ object OccurrenceCollectionGenerator {
           session.execute(CassandraUtil.occurrenceCollectionRegistryTableCreate)
           session.execute(CassandraUtil.occurrenceCollectionTableCreate)
         }
-        occurrenceCollection.map(item => (taxonSelectorString, wktString, traitSelectorString, item._3, item._1, item._2, item._4, item._5, System.currentTimeMillis(), "http://some.archive.url"))
+        occurrenceCollection.map(item => (taxonSelectorString, wktString, traitSelectorString, item._3, item._1, item._2, item._5, item._6, item._4, System.currentTimeMillis(), "http://some.archive.url"))
           .saveToCassandra("effechecka", "occurrence_collection", CassandraUtil.occurrenceCollectionColumns)
 
         sc.parallelize(Seq((taxonSelectorString, wktString, traitSelectorString, "ready", occurrenceCollection.count())))
@@ -88,7 +88,7 @@ object OccurrenceCollectionGenerator {
 }
 
 object OccurrenceCollectionBuilder {
-  def buildOccurrenceCollection(sc: SparkContext, df: DataFrame, wkt: String, taxa: Seq[String]): RDD[(String, String, String, String, String)] = {
+  def buildOccurrenceCollection(sc: SparkContext, df: DataFrame, wkt: String, taxa: Seq[String]): RDD[(String, String, String, String, Long, Long)] = {
     val sqlContext: SQLContext = SQLContextSingleton.getInstance(sc)
     import sqlContext.implicits._
 
@@ -96,52 +96,47 @@ object OccurrenceCollectionBuilder {
       , "`http://rs.tdwg.org/dwc/terms/decimalLongitude`")
     val taxonNameTerms = List("kingdom", "phylum", "class", "order", "family", "genus", "specificEpithet", "scientificName")
       .map(term => s"`http://rs.tdwg.org/dwc/terms/$term`")
-    val eventDateTerms = List("`http://rs.tdwg.org/dwc/terms/eventDate`", "`http://rs.tdwg.org/dwc/terms/occurrenceID`")
+    val eventDateTerm = "`http://rs.tdwg.org/dwc/terms/eventDate`"
 
-    val availableTerms: Seq[String] = (locationTerms ::: taxonNameTerms ::: eventDateTerms) intersect df.columns.map(_.mkString("`", "", "`"))
+    val remainingTerms = List(eventDateTerm, "`http://rs.tdwg.org/dwc/terms/occurrenceID`")
+
+    val availableTerms: Seq[String] = (locationTerms ::: taxonNameTerms ::: remainingTerms) intersect df.columns.map(_.mkString("`", "", "`"))
     val availableTaxonTerms = taxonNameTerms.intersect(availableTerms)
 
 
     import org.apache.spark.sql.functions.udf
-    val hasDate = udf(validDate(_: String))
+    val hasDate = udf(DateUtil.validDate(_: String))
+    val startDateOf = udf(DateUtil.startDate(_: String))
+    val endDateOf = udf(DateUtil.endDate(_: String))
     val taxaSelected = udf((taxonPath: String) => taxa.intersect(taxonPath.split("\\|")).nonEmpty)
     val locationSelected = udf((lat: String, lng: String) => {
       SpatialFilter.locatedInLatLng(wkt, Seq(lat, lng))
     })
 
     if (availableTerms.containsSlice(locationTerms)
-      && availableTerms.containsSlice(eventDateTerms)
+      && availableTerms.containsSlice(remainingTerms)
       && availableTaxonTerms.nonEmpty) {
+      val taxonPathTerm: String = "taxonPath"
       val withPath = df.select(availableTerms.map(col): _*)
-        .withColumn("taxonPath", concat_ws("|", availableTaxonTerms.map(col): _*))
+        .withColumn(taxonPathTerm, concat_ws("|", availableTaxonTerms.map(col): _*))
 
-      val occColumns = locationTerms ::: List("taxonPath") ::: eventDateTerms
+      val occColumns = locationTerms ::: List(taxonPathTerm) ::: remainingTerms
       withPath.select(occColumns.map(col): _*)
-        .filter(hasDate(col(eventDateTerms.head)))
-        .filter(taxaSelected(col("taxonPath")))
-        .filter(locationSelected(locationTerms.map(col):_*))
+        .filter(hasDate(col(eventDateTerm)))
+        .filter(taxaSelected(col(taxonPathTerm)))
+        .filter(locationSelected(locationTerms.map(col): _*))
+        .withColumn("start", startDateOf(col(eventDateTerm)))
+        .withColumn("end", endDateOf(col(eventDateTerm)))
+        .drop(col(eventDateTerm))
         .limit(1000)
-        .as[(String, String, String, String, String)]
+        .as[(String, String, String, String, Long, Long)]
         .rdd
     } else {
-      sc.emptyRDD[(String, String, String, String, String)]
+      sc.emptyRDD[(String, String, String, String, Long, Long)]
     }
   }
 
-  def validDate(dateString: String): Boolean = {
-    null != dateString && dateString.nonEmpty &&
-      (try {
-        new DateTime(dateString, DateTimeZone.getDefault)
-        true
-      } catch {
-        case e: IllegalArgumentException =>
-          try {
-            null != Interval.parse(dateString)
-          } catch {
-            case e: IllegalArgumentException => false
-          }
-      })
-  }
+
 }
 
 

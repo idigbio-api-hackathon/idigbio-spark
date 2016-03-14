@@ -232,7 +232,7 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
         session.execute(CassandraUtil.occurrenceCollectionRegistryTableCreate)
         session.execute(s"TRUNCATE effechecka.occurrence_collection")
       }
-      val otherLines = Seq(("some taxonselector", "some wktstring", "some traitselector", "Animalia|Aves", "11.4", "12.2", "2013-05-03", "http://record1", System.currentTimeMillis(), "http://archive2"))
+      val otherLines = Seq(("some taxonselector", "some wktstring", "some traitselector", "Animalia|Aves", "11.4", "12.2", "2013-05-03", 123L, 124L, System.currentTimeMillis(), "http://archive2"))
 
       sc.parallelize(otherLines)
         .saveToCassandra("effechecka", "occurrence_collection", CassandraUtil.occurrenceCollectionColumns)
@@ -267,12 +267,12 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
 
   "apply occurrence filter" should "select a few occurrences" in {
     val idigbio = readDwC.head._2
-    val collection: RDD[(String, String, String, String, String)] = OccurrenceCollectionBuilder
+    val collection: RDD[(String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
       .buildOccurrenceCollection(sc, idigbio, "ENVELOPE(4,5,52,50)", Seq("Plantae"))
 
     collection.count() should be(9)
 
-    val anotherCollection: RDD[(String, String, String, String, String)] = OccurrenceCollectionBuilder
+    val anotherCollection: RDD[(String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
       .buildOccurrenceCollection(sc, idigbio, "ENVELOPE(4,5,52,50)", Seq("Dactylis"))
 
     anotherCollection.count() should be(1)

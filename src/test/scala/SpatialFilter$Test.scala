@@ -33,17 +33,4 @@ class SpatialFilter$Test extends FlatSpec with Matchers {
     SpatialFilter.locatedIn("ENVELOPE(0.703125,-0.703125,90,65.07213008560697)", row) shouldBe true
   }
 
-  "valid date" should "be valid" in {
-    OccurrenceCollectionBuilder.validDate(("2016-01-1")) should be(true)
-  }
-
-  "valid date range" should "be valid" in {
-    OccurrenceCollectionBuilder.validDate(("2016-01-10/2016-01-20")) should be(true)
-  }
-
-  "invalid date" should "be not valid" in {
-    OccurrenceCollectionBuilder.validDate(("boo 2016-01-1")) should be(false)
-  }
-
-
 }
