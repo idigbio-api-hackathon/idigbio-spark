@@ -17,7 +17,8 @@ libraryDependencies ++= Seq(
   "org.globalnames" %% "gnparser" % "0.2.0" excludeAll(
     ExclusionRule(organization = "com.fasterxml.jackson.core"),
     ExclusionRule(organization = "org.scala-lang")),
-  "com.spatial4j" % "spatial4j" % "0.4.1",
+  "org.locationtech.spatial4j" % "spatial4j" % "0.6",
+  "com.vividsolutions" % "jts-core" % "1.14.0",
   "org.apache.spark" %% "spark-sql" % sparkV % "provided",
   "org.apache.spark" %% "spark-graphx" % sparkV % "provided",
   "com.datastax.spark" %% "spark-cassandra-connector" % "1.6.0-M1" excludeAll(

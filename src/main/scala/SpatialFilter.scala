@@ -1,5 +1,7 @@
-import com.spatial4j.core.context.SpatialContext
-import com.spatial4j.core.shape.{SpatialRelation, Shape}
+import org.locationtech.spatial4j.context.SpatialContext
+import org.locationtech.spatial4j.context.jts.JtsSpatialContext
+import org.locationtech.spatial4j.io.{ShapeReader, WKTReader}
+import org.locationtech.spatial4j.shape.{SpatialRelation, Shape}
 
 import scala.util.Try
 
@@ -10,8 +12,7 @@ object SpatialFilter {
   }.toOption
 
   def parseWkt(wktString: String): Option[Shape] = Try {
-    val ctx: SpatialContext = SpatialContext.GEO
-    ctx.readShapeFromWkt(wktString)
+    new WKTReader(JtsSpatialContext.GEO, null).parse(wktString)
   }.toOption
 
   def parsePoint(lng: Double, lat: Double): Option[Shape] = Try {
