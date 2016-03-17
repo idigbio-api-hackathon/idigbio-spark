@@ -37,5 +37,9 @@ class SpatialFilter$Test extends FlatSpec with Matchers {
     val row = Map("dwc:decimalLatitude" -> "89.5", "dwc:decimalLongitude" -> "20.0")
     SpatialFilter.locatedIn("POLYGON ((0 56.0, 0 89.9, 31.6 89.9, 31.6 56.0, 0 56.0))", row) shouldBe true
   }
+  "a polygon collection covering the arctic" should "include a point on the arctic" in {
+    val row = Map("dwc:decimalLatitude" -> "89.5", "dwc:decimalLongitude" -> "20.0")
+    SpatialFilter.locatedIn("GEOMETRYCOLLECTION(POLYGON ((0 56.0, 0 89.9, 31.6 89.9, 31.6 56.0, 0 56.0)))", row) shouldBe true
+  }
 
 }
