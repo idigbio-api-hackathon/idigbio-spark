@@ -128,7 +128,6 @@ object OccurrenceCollectionBuilder {
         .withColumn("start", startDateOf(col(eventDateTerm)))
         .withColumn("end", endDateOf(col(eventDateTerm)))
         .drop(col(eventDateTerm))
-        .limit(4096)
         .as[(String, String, String, String, Long, Long)]
         .rdd
     } else {
