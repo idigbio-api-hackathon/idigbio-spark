@@ -33,7 +33,7 @@ object OccurrenceCollectionGenerator {
           session.execute(CassandraUtil.occurrenceCollectionRegistryTableCreate)
           session.execute(CassandraUtil.occurrenceCollectionTableCreate)
         }
-        occurrenceCollection.map(item => (taxonSelectorString, wktString, traitSelectorString, item._3, item._1, item._2, item._5, item._6, item._4, System.currentTimeMillis(), "http://some.archive.url"))
+        occurrenceCollection.map(item => (taxonSelectorString, wktString, traitSelectorString, item._3, item._1, item._2, item._7, item._8, item._4, item._5, item._6))
           .saveToCassandra("effechecka", "occurrence_collection", CassandraUtil.occurrenceCollectionColumns)
 
         sc.parallelize(Seq((taxonSelectorString, wktString, traitSelectorString, "ready", occurrenceCollection.count())))
@@ -88,7 +88,7 @@ object OccurrenceCollectionGenerator {
 }
 
 object OccurrenceCollectionBuilder {
-  def buildOccurrenceCollection(sc: SparkContext, df: DataFrame, wkt: String, taxa: Seq[String]): RDD[(String, String, String, String, Long, Long)] = {
+  def buildOccurrenceCollection(sc: SparkContext, df: DataFrame, wkt: String, taxa: Seq[String]): RDD[(String, String, String, String, String, String, Long, Long)] = {
     val sqlContext: SQLContext = SQLContextSingleton.getInstance(sc)
     import sqlContext.implicits._
 
@@ -98,7 +98,7 @@ object OccurrenceCollectionBuilder {
       .map(term => s"`http://rs.tdwg.org/dwc/terms/$term`")
     val eventDateTerm = "`http://rs.tdwg.org/dwc/terms/eventDate`"
 
-    val remainingTerms = List(eventDateTerm, "`http://rs.tdwg.org/dwc/terms/occurrenceID`")
+    val remainingTerms = List(eventDateTerm, "`http://rs.tdwg.org/dwc/terms/occurrenceID`", "`date`", "`source`")
 
     val availableTerms: Seq[String] = (locationTerms ::: taxonNameTerms ::: remainingTerms) intersect df.columns.map(_.mkString("`", "", "`"))
     val availableTaxonTerms = taxonNameTerms.intersect(availableTerms)
@@ -122,16 +122,17 @@ object OccurrenceCollectionBuilder {
 
       val occColumns = locationTerms ::: List(taxonPathTerm) ::: remainingTerms
       withPath.select(occColumns.map(col): _*)
+        .filter(hasDate(col("date")))
         .filter(hasDate(col(eventDateTerm)))
         .filter(taxaSelected(col(taxonPathTerm)))
         .filter(locationSelected(locationTerms.map(col): _*))
         .withColumn("start", startDateOf(col(eventDateTerm)))
         .withColumn("end", endDateOf(col(eventDateTerm)))
         .drop(col(eventDateTerm))
-        .as[(String, String, String, String, Long, Long)]
+        .as[(String, String, String, String, String, String, Long, Long)]
         .rdd
     } else {
-      sc.emptyRDD[(String, String, String, String, Long, Long)]
+      sc.emptyRDD[(String, String, String, String, String, String, Long, Long)]
     }
   }
 

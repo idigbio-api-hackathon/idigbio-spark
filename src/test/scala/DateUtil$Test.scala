@@ -7,6 +7,10 @@ class DateUtil$Test extends FlatSpec with Matchers {
     validDate("1965-1") should be(true)
   }
 
+  "a date with year and month no hyphen" should "be valid" in {
+    validDate("19650101") should be(true)
+  }
+
   "a date interval with year and month" should "be valid" in {
     validDate("1965-1/1970") should be(true)
   }

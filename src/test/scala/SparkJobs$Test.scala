@@ -267,12 +267,12 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
 
   "apply occurrence filter" should "select a few occurrences" in {
     val idigbio = readDwC.head._2
-    val collection: RDD[(String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
+    val collection: RDD[(String, String, String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
       .buildOccurrenceCollection(sc, idigbio, "ENVELOPE(4,5,52,50)", Seq("Plantae"))
 
     collection.count() should be(9)
 
-    val anotherCollection: RDD[(String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
+    val anotherCollection: RDD[(String, String, String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
       .buildOccurrenceCollection(sc, idigbio, "ENVELOPE(4,5,52,50)", Seq("Dactylis"))
 
     anotherCollection.count() should be(1)
@@ -302,7 +302,7 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
     }
     toDF(metas map {
       _.toString
-    })
+    }).map { fileDF => (fileDF._1, fileDF._2.withColumn("date", col("`http://rs.tdwg.org/dwc/terms/eventDate`")).withColumn("source", col("`http://rs.tdwg.org/dwc/terms/institutionCode`"))) }
   }
 
   "creating a graph" should "leverage rows" in {
