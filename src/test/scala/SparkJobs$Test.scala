@@ -318,7 +318,7 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
     }
     toDF(metas map {
       _.toString
-    }).map { fileDF => (fileDF._1, fileDF._2.withColumn("date", col("`http://rs.tdwg.org/dwc/terms/eventDate`")).withColumn("source", col("`http://rs.tdwg.org/dwc/terms/institutionCode`"))) }
+    }).map { fileDF => (fileDF._1, fileDF._2.withColumn("date", date_format(current_date(),"yyyyMMdd")).withColumn("source", col("`http://rs.tdwg.org/dwc/terms/institutionCode`"))) }
   }
 
   "creating a graph" should "leverage rows" in {
