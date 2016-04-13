@@ -1,4 +1,5 @@
 import org.joda.time.chrono.ISOChronology
+import org.joda.time.format.{DateTimeFormatter, ISODateTimeFormat}
 import org.joda.time.{DateTime, DateTimeZone, Interval}
 
 object DateUtil {
@@ -40,5 +41,10 @@ object DateUtil {
 
   def toUnixTime(dateString: String): Long = {
     new DateTime(dateString, DateTimeZone.UTC).toDate.getTime
+  }
+
+  def basicDateToUnixTime(basicDateString: String): Long = {
+    val fmt = ISODateTimeFormat.basicDate()
+    fmt.withZoneUTC().parseDateTime(basicDateString).toDate.getTime
   }
 }

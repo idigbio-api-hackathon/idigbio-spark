@@ -107,6 +107,7 @@ object OccurrenceCollectionBuilder {
     import org.apache.spark.sql.functions.udf
     val hasDate = udf(DateUtil.validDate(_: String))
     val startDateOf = udf(DateUtil.startDate(_: String))
+    val basicDateOf = udf(DateUtil.basicDateToUnixTime(_: String))
     val endDateOf = udf(DateUtil.endDate(_: String))
     val taxaSelected = udf((taxonPath: String) => taxa.intersect(taxonPath.split("\\|")).nonEmpty)
     val locationSelected = udf((lat: String, lng: String) => {
@@ -126,7 +127,7 @@ object OccurrenceCollectionBuilder {
         .filter(hasDate(col(eventDateTerm)))
         .filter(taxaSelected(col(taxonPathTerm)))
         .filter(locationSelected(locationTerms.map(col): _*))
-        .withColumn("pdate", startDateOf(col("date")))
+        .withColumn("pdate", basicDateOf(col("date")))
         .withColumn("psource", col("source"))
         .withColumn("start", startDateOf(col(eventDateTerm)))
         .withColumn("end", endDateOf(col(eventDateTerm)))

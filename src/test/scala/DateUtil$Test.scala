@@ -19,6 +19,11 @@ class DateUtil$Test extends FlatSpec with Matchers {
     startDate("1965-1") should be(-157766400000L)
   }
 
+  "a start date no hyphen" should "parse using UTC" in {
+    basicDateToUnixTime("20150616") should be(1434412800000L)
+    startDate("2015-06-16") should be(1434412800000L)
+  }
+
   "an end date with year and month" should "parse using UTC" in {
     endDate("1965-1") should be(-157766400000L)
   }
