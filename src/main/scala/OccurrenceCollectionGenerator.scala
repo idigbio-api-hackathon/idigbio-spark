@@ -88,7 +88,7 @@ object OccurrenceCollectionGenerator {
 }
 
 object OccurrenceCollectionBuilder {
-  def buildOccurrenceCollection(sc: SparkContext, df: DataFrame, wkt: String, taxa: Seq[String]): RDD[(String, String, String, String, String, String, Long, Long)] = {
+  def buildOccurrenceCollection(sc: SparkContext, df: DataFrame, wkt: String, taxa: Seq[String]): RDD[(String, String, String, String, Long, String, Long, Long)] = {
     val sqlContext: SQLContext = SQLContextSingleton.getInstance(sc)
     import sqlContext.implicits._
 
@@ -133,10 +133,10 @@ object OccurrenceCollectionBuilder {
         .drop(col(eventDateTerm))
         .drop(col("date"))
         .drop(col("source"))
-        .as[(String, String, String, String, String, String, Long, Long)]
+        .as[(String, String, String, String, Long, String, Long, Long)]
         .rdd
     } else {
-      sc.emptyRDD[(String, String, String, String, String, String, Long, Long)]
+      sc.emptyRDD[(String, String, String, String, Long, String, Long, Long)]
     }
   }
 

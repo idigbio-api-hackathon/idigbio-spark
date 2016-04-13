@@ -232,7 +232,7 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
         session.execute(CassandraUtil.occurrenceCollectionRegistryTableCreate)
         session.execute(s"TRUNCATE effechecka.occurrence_collection")
       }
-      val otherLines = Seq(("some taxonselector", "some wktstring", "some traitselector", "Animalia|Aves", "11.4", "12.2", "2013-05-03", 123L, 124L, System.currentTimeMillis(), "http://archive2"))
+      val otherLines = Seq(("some taxonselector", "some wktstring", "some traitselector", "Animalia|Aves", "11.4", "12.2", "2013-05-03", 123L, 124L, 635829854630400000L, "http://archive2"))
 
       sc.parallelize(otherLines)
         .saveToCassandra("effechecka", "occurrence_collection", CassandraUtil.occurrenceCollectionColumns)
@@ -267,13 +267,13 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
 
   "apply occurrence filter to gbif sample" should "select a few occurrences" in {
     val gbif = readDwC.head._2
-    val collection: RDD[(String, String, String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
+    val collection: RDD[(String, String, String, String, Long, String, Long, Long)] = OccurrenceCollectionBuilder
       .buildOccurrenceCollection(sc, gbif, "ENVELOPE(4,5,52,50)", Seq("Plantae"))
 
     collection.count() should be(9)
     collection.first()._1 should be("51.94536")
 
-    val anotherCollection: RDD[(String, String, String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
+    val anotherCollection: RDD[(String, String, String, String, Long, String, Long, Long)] = OccurrenceCollectionBuilder
       .buildOccurrenceCollection(sc, gbif, "ENVELOPE(4,5,52,50)", Seq("Dactylis"))
 
     anotherCollection.count() should be(1)
@@ -282,13 +282,13 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
 
   "apply occurrence filter to idigbio sample" should "select a few occurrences" in {
     val idigbio = readDwC.last._2
-    val collection: RDD[(String, String, String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
+    val collection: RDD[(String, String, String, String, Long, String, Long, Long)] = OccurrenceCollectionBuilder
       .buildOccurrenceCollection(sc, idigbio, "ENVELOPE(-100,-90,40,30)", Seq("Animalia"))
 
     collection.count() should be(1)
     collection.first()._1 should be("33.4519400")
 
-    val anotherCollection: RDD[(String, String, String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
+    val anotherCollection: RDD[(String, String, String, String, Long, String, Long, Long)] = OccurrenceCollectionBuilder
       .buildOccurrenceCollection(sc, idigbio, "ENVELOPE(-100,-90,40,30)", Seq("Crurithyris"))
 
     anotherCollection.count() should be(1)
