@@ -126,9 +126,13 @@ object OccurrenceCollectionBuilder {
         .filter(hasDate(col(eventDateTerm)))
         .filter(taxaSelected(col(taxonPathTerm)))
         .filter(locationSelected(locationTerms.map(col): _*))
+        .withColumn("pdate", startDateOf(col("date")))
+        .withColumn("psource", col("source"))
         .withColumn("start", startDateOf(col(eventDateTerm)))
         .withColumn("end", endDateOf(col(eventDateTerm)))
         .drop(col(eventDateTerm))
+        .drop(col("date"))
+        .drop(col("source"))
         .as[(String, String, String, String, String, String, Long, Long)]
         .rdd
     } else {

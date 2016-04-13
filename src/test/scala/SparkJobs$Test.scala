@@ -265,15 +265,31 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
     collectedLinks should contain(Row("904605700", "refers", "68BAECEE-E995-4F11-B7B5-88D252879345/141"))
   }
 
-  "apply occurrence filter" should "select a few occurrences" in {
-    val idigbio = readDwC.head._2
+  "apply occurrence filter to gbif sample" should "select a few occurrences" in {
+    val gbif = readDwC.head._2
     val collection: RDD[(String, String, String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
-      .buildOccurrenceCollection(sc, idigbio, "ENVELOPE(4,5,52,50)", Seq("Plantae"))
+      .buildOccurrenceCollection(sc, gbif, "ENVELOPE(4,5,52,50)", Seq("Plantae"))
 
     collection.count() should be(9)
+    collection.first()._1 should be("51.94536")
 
     val anotherCollection: RDD[(String, String, String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
-      .buildOccurrenceCollection(sc, idigbio, "ENVELOPE(4,5,52,50)", Seq("Dactylis"))
+      .buildOccurrenceCollection(sc, gbif, "ENVELOPE(4,5,52,50)", Seq("Dactylis"))
+
+    anotherCollection.count() should be(1)
+
+  }
+
+  "apply occurrence filter to idigbio sample" should "select a few occurrences" in {
+    val idigbio = readDwC.last._2
+    val collection: RDD[(String, String, String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
+      .buildOccurrenceCollection(sc, idigbio, "ENVELOPE(-100,-90,40,30)", Seq("Animalia"))
+
+    collection.count() should be(1)
+    collection.first()._1 should be("33.4519400")
+
+    val anotherCollection: RDD[(String, String, String, String, String, String, Long, Long)] = OccurrenceCollectionBuilder
+      .buildOccurrenceCollection(sc, idigbio, "ENVELOPE(-100,-90,40,30)", Seq("Crurithyris"))
 
     anotherCollection.count() should be(1)
 
