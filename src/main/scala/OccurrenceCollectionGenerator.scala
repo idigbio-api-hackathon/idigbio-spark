@@ -151,10 +151,10 @@ object OccurrenceCollectionBuilder {
     includeFirstSeenOccurrencesOnly(occurrences, firstSeen)
   }
 
-
   def selectOccurrences(sqlContext: SQLContext, df: DataFrame, taxa: Seq[String], wkt: String): DataFrame = {
     import org.apache.spark.sql.functions.udf
     import sqlContext.implicits._
+    val hasNonEmpty = udf(DateUtil.nonEmpty(_: String))
     val hasDate = udf(DateUtil.validDate(_: String))
     val startDateOf = udf(DateUtil.startDate(_: String))
     val basicDateOf = udf(DateUtil.basicDateToUnixTime(_: String))
@@ -171,6 +171,7 @@ object OccurrenceCollectionBuilder {
     val occColumns = locationTerms ::: List(taxonPathTerm) ::: remainingTerms
 
     withPath.select(occColumns.map(col): _*)
+      .filter(hasNonEmpty(col(occurrenceIdTerm)))
       .filter(hasDate(col("date")))
       .filter(hasDate(col(eventDateTerm)))
       .filter(taxaSelected(col(taxonPathTerm)))

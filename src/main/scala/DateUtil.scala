@@ -4,8 +4,12 @@ import org.joda.time.{DateTime, DateTimeZone, Interval}
 
 object DateUtil {
 
+  def nonEmpty(someString: String): Boolean = {
+    null != someString && someString.nonEmpty
+  }
+
   def validDate(dateString: String): Boolean = {
-    null != dateString && dateString.nonEmpty &&
+    nonEmpty(dateString) &&
       (try {
         new DateTime(dateString, DateTimeZone.UTC)
         true
