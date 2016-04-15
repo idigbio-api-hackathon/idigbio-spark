@@ -14,5 +14,5 @@ $SPARK_HOME/bin/spark-submit \
 --driver-memory 6G \
 --total-executor-cores 10 \
 --class DarwinCoreToParquet \
-file:///home/int/jobs/iDigBio-LD-assembly-1.5.0.jar \
+file:///home/int/jobs/iDigBio-LD-assembly-1.5.1.jar \
 file:///home/int/data/$1/meta.xml

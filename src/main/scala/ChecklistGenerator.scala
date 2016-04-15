@@ -24,7 +24,8 @@ case class ChecklistConf(occurrenceFiles: Seq[String] = Seq()
                          , traitSelector: Seq[String] = Seq()
                          , taxonSelector: Seq[String] = Seq()
                          , geoSpatialSelector: String = ""
-                         , outputFormat: String = "cassandra")
+                         , outputFormat: String = "cassandra"
+                         , firstSeenOnly: Boolean = true)
 
 object ChecklistGenerator {
 

@@ -280,6 +280,35 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
 
   }
 
+  "apply first added aggregate" should "select a few occurrences" in {
+    val df = readDwCNoSource.head._2
+
+    val gbif2010 = df.withColumn("date", lit("20100101")).withColumn("source", lit("gbif"))
+    val gbif2012 = df.withColumn("date", lit("20120101")).withColumn("source", lit("gbif"))
+
+    val gbif = gbif2010.unionAll(gbif2012)
+
+    val collection = OccurrenceCollectionBuilder
+      .selectOccurrences(sqlContext, df = gbif, wkt = "ENVELOPE(4,5,52,50)", taxa = Seq("Plantae"))
+
+    collection.count() should be(18)
+
+    val firstSeen: DataFrame = OccurrenceCollectionBuilder.firstSeenOccurrences(collection)
+
+    val gbifFirstSeenOnly = OccurrenceCollectionBuilder.includeFirstSeenOccurrencesOnly(collection, firstSeen)
+
+    firstSeen.count() should be(9)
+    firstSeen.columns should contain("firstSeen")
+    firstSeen.columns should contain("firstSeenID")
+    firstSeen.columns shouldNot contain("http://rs.tdwg.org/dwc/terms/occurrenceID")
+
+    gbifFirstSeenOnly.count() should be(9)
+
+    val anotherCollection = OccurrenceCollectionBuilder.selectOccurrences(sqlContext, df = gbif, wkt = "ENVELOPE(4,5,52,50)", taxa = Seq("Dactylis"))
+    anotherCollection.count() should be(2)
+
+  }
+
   "apply occurrence filter to idigbio sample" should "select a few occurrences" in {
     val idigbio = readDwC.last._2
     val collection: RDD[(String, String, String, String, Long, String, Long, Long)] = OccurrenceCollectionBuilder
@@ -313,12 +342,19 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
 
 
   def readDwC: Seq[(String, DataFrame)] = {
+    readDwCNoSource.map {
+      fileDF => (fileDF._1,
+        fileDF._2.withColumn("date", date_format(current_date(), "yyyyMMdd")).withColumn("source", col("`http://rs.tdwg.org/dwc/terms/institutionCode`")))
+    }
+  }
+
+  def readDwCNoSource: Seq[(String, DataFrame)] = {
     val metas = List("/gbif/meta.xml", "/idigbio/meta.xml") map {
       getClass.getResource
     }
     toDF(metas map {
       _.toString
-    }).map { fileDF => (fileDF._1, fileDF._2.withColumn("date", date_format(current_date(),"yyyyMMdd")).withColumn("source", col("`http://rs.tdwg.org/dwc/terms/institutionCode`"))) }
+    })
   }
 
   "creating a graph" should "leverage rows" in {
