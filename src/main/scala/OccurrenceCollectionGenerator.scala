@@ -31,6 +31,7 @@ object OccurrenceCollectionGenerator {
 
     val occurrenceCollection = OccurrenceCollectionBuilder
       .collectOccurrences(sc, occurrenceSelector, occurrences, wktString, taxonSelector)
+      .cache()
 
     val traitSelectors = config.traitSelector
     val traitSelectorString: String = traitSelectors.mkString("|")
