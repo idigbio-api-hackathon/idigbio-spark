@@ -1,4 +1,9 @@
+import java.util
+
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
+
 import org.apache.spark.rdd.RDD
+import org.apache.spark.scheduler.{JobSucceeded, SparkListenerJobEnd, SparkListenerJobStart, SparkListener}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.spark.{SparkConf, SparkContext}
@@ -18,6 +23,36 @@ object OccurrenceCollectionGenerator {
       .set("spark.cassandra.connection.host", "localhost")
       .setAppName("occ2collection")
     val sc = new SparkContext(conf)
+
+    val props = new util.HashMap[String, Object]()
+    val topic = "effechecka-selector"
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:2181")
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+      "org.apache.kafka.common.serialization.StringSerializer")
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+      "org.apache.kafka.common.serialization.StringSerializer")
+
+    val producer = new KafkaProducer[String, String](props)
+
+    def sendMsg(msg: String): Unit = {
+      val message = new ProducerRecord[String, String](topic, null, msg)
+      producer.send(message)
+    }
+
+    sc.addSparkListener(new SparkListener() {
+      override def onJobStart(jobStart: SparkListenerJobStart): Unit = {
+        sendMsg("""started""")
+      }
+
+      override def onJobEnd(jobEnd: SparkListenerJobEnd): Unit = {
+        val msg = jobEnd.jobResult match {
+          case JobSucceeded => "success"
+          case _ => "failed"
+        }
+        sendMsg(s"end [$msg]")
+      }
+    })
+
     val sqlContext = SQLContextSingleton.getInstance(sc)
     val occurrences: DataFrame = sqlContext.read.format("parquet").load(occurrenceFile)
 
