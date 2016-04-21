@@ -21,7 +21,9 @@ libraryDependencies ++= Seq(
   "com.vividsolutions" % "jts-core" % "1.14.0",
   "org.apache.spark" %% "spark-sql" % sparkV % "provided",
   "org.apache.spark" %% "spark-graphx" % sparkV % "provided",
-  "org.apache.spark" %% "spark-streaming-kafka" % sparkV,
+  "org.apache.spark" %% "spark-streaming-kafka" % sparkV excludeAll(
+    ExclusionRule("org.spark-project.spark", "unused")
+    ),
   "com.datastax.spark" %% "spark-cassandra-connector" % "1.6.0-M1" excludeAll(
     ExclusionRule(organization = "io.netty"),
     ExclusionRule("org.slf4j", "slf4j-api"),
