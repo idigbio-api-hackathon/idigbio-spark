@@ -31,7 +31,6 @@ object OccurrenceCollectionGenerator {
 
     val occurrenceCollection = OccurrenceCollectionBuilder
       .collectOccurrences(sc, occurrenceSelector, occurrences, wktString, taxonSelector)
-      .cache()
 
     val traitSelectors = config.traitSelector
     val traitSelectorString: String = traitSelectors.mkString("|")
@@ -174,8 +173,8 @@ object OccurrenceCollectionBuilder {
       .filter(hasNonEmpty(col(occurrenceIdTerm)))
       .filter(hasDate(col("date")))
       .filter(hasDate(col(eventDateTerm)))
-      .filter(taxaSelected(col(taxonPathTerm)))
       .filter(locationSelected(locationTerms.map(col): _*))
+      .filter(taxaSelected(col(taxonPathTerm)))
       .withColumn("pdate", basicDateOf(col("date")))
       .withColumn("psource", col("source"))
       .withColumn("start", startDateOf(col(eventDateTerm)))

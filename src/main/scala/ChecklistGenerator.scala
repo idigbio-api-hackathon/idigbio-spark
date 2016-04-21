@@ -185,8 +185,8 @@ object ChecklistBuilder {
         .withColumn("taxonPath", concat_ws("|", availableTaxonTerms.map(col): _*))
       withPath.select(locationTerms.head, locationTerms.last, "taxonPath")
         .as[(String, String, String)]
-        .filter(p => taxa.intersect(p._3.split("\\|")).nonEmpty)
         .filter(p => SpatialFilter.locatedInLatLng(wkt, Seq(p._1, p._2)))
+        .filter(p => taxa.intersect(p._3.split("\\|")).nonEmpty)
         .map(p => (p._3, 1))
         .rdd.reduceByKey(_ + _)
         .sortBy(_._2, ascending = false)
