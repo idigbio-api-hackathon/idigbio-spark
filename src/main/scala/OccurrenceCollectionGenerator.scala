@@ -40,11 +40,11 @@ object OccurrenceCollectionGenerator {
     }
 
     sc.addSparkListener(new SparkListener() {
-      override def onApplicationStart(applicationStart: SparkListenerApplicationStart)
+      override def onApplicationStart(applicationStart: SparkListenerApplicationStart) {
         sendMsg("""start""")
       }
 
-      override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd)
+      override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd) {
         sendMsg("""end""")
       }
     })
