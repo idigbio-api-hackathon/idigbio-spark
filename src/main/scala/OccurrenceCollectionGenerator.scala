@@ -26,7 +26,7 @@ object OccurrenceCollectionGenerator {
 
     val props = new util.HashMap[String, Object]()
     val topic = "effechecka-selector"
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:2181")
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
       "org.apache.kafka.common.serialization.StringSerializer")
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
