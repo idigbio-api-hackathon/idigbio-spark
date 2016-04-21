@@ -22,6 +22,7 @@ object OccurrenceCollectionGenerator {
     val conf = new SparkConf()
       .set("spark.cassandra.connection.host", "localhost")
       .setAppName("occ2collection")
+
     val sc = new SparkContext(conf)
 
     val props = new util.HashMap[String, Object]()
@@ -41,11 +42,11 @@ object OccurrenceCollectionGenerator {
 
     sc.addSparkListener(new SparkListener() {
       override def onApplicationStart(applicationStart: SparkListenerApplicationStart) {
-        sendMsg("""start""")
+        sendMsg("""onApplicationStart""")
       }
 
       override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd) {
-        sendMsg("""end""")
+        sendMsg("""onApplicationEnd""")
       }
     })
 
@@ -204,8 +205,8 @@ object OccurrenceCollectionBuilder {
       .filter(hasNonEmpty(col(occurrenceIdTerm)))
       .filter(hasDate(col("date")))
       .filter(hasDate(col(eventDateTerm)))
-      .filter(locationSelected(locationTerms.map(col): _*))
       .filter(taxaSelected(col(taxonPathTerm)))
+      .filter(locationSelected(locationTerms.map(col): _*))
       .withColumn("pdate", basicDateOf(col("date")))
       .withColumn("psource", col("source"))
       .withColumn("start", startDateOf(col(eventDateTerm)))
