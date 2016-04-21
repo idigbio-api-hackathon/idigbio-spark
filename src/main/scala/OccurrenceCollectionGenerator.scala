@@ -3,7 +3,7 @@ import java.util
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
 
 import org.apache.spark.rdd.RDD
-import org.apache.spark.scheduler.{JobSucceeded, SparkListenerJobEnd, SparkListenerJobStart, SparkListener}
+import org.apache.spark.scheduler._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SQLContext}
 import org.apache.spark.{SparkConf, SparkContext}
@@ -40,16 +40,12 @@ object OccurrenceCollectionGenerator {
     }
 
     sc.addSparkListener(new SparkListener() {
-      override def onJobStart(jobStart: SparkListenerJobStart): Unit = {
-        sendMsg("""started""")
+      override def onApplicationStart(applicationStart: SparkListenerApplicationStart)
+        sendMsg("""start""")
       }
 
-      override def onJobEnd(jobEnd: SparkListenerJobEnd): Unit = {
-        val msg = jobEnd.jobResult match {
-          case JobSucceeded => "success"
-          case _ => "failed"
-        }
-        sendMsg(s"end [$msg]")
+      override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd)
+        sendMsg("""end""")
       }
     })
 
