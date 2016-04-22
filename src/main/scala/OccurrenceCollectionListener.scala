@@ -20,20 +20,18 @@ class OccurrenceCollectionListener extends SparkListener {
     producer.send(message)
   }
 
-  override def onStageCompleted(stageCompleted: SparkListenerStageCompleted): Unit = {
-    sendMsg(s"onStageCompleted ${stageCompleted.stageInfo.name}")
+  override def onStageCompleted(stage: SparkListenerStageCompleted): Unit = {
+    sendMsg(s"onStageCompleted ${stage.stageInfo.name} with [${stage.stageInfo.numTasks}] tasks")
   }
 
-  override def onStageSubmitted(stageSubmitted: SparkListenerStageSubmitted): Unit = {
-    sendMsg(s"onStageSubmitted ${stageSubmitted.stageInfo.name}")
+  override def onStageSubmitted(stage: SparkListenerStageSubmitted): Unit = {
+    sendMsg(s"onStageSubmitted ${stage.stageInfo.name} with [${stage.stageInfo.numTasks}] tasks")
   }
 
-  override def onTaskStart(taskStart: SparkListenerTaskStart): Unit = {
-    sendMsg(s"onTaskStart with stageId [${taskStart.stageId}] status: [${taskStart.taskInfo.status}]")
-  }
-
-  override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit = {
-    sendMsg(s"onTaskEnd with stageId [${taskEnd.stageId}] status: [${taskEnd.taskInfo.status}]")
+  override def onTaskEnd(task: SparkListenerTaskEnd): Unit = {
+    if (task.taskInfo.index % 100 == 0) {
+      sendMsg(s"onTaskEnd with task [${task.taskInfo.index}] for stageId [${task.stageId}] status: [${task.taskInfo.status}]")
+    }
   }
 
   override def onJobStart(jobStart: SparkListenerJobStart): Unit = {
