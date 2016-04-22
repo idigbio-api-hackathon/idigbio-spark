@@ -19,10 +19,10 @@ object OccurrenceCollectionGenerator {
 
     val conf = new SparkConf()
       .set("spark.cassandra.connection.host", "localhost")
-      .set("spark.extraListeners", classOf[OccurrenceCollectionListener].toString)
       .setAppName("occ2collection")
 
     val sc = new SparkContext(conf)
+    sc.addSparkListener(new OccurrenceCollectionListener)
 
     val sqlContext = SQLContextSingleton.getInstance(sc)
     val occurrences: DataFrame = sqlContext.read.format("parquet").load(occurrenceFile)
