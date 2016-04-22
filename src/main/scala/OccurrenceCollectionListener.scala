@@ -31,26 +31,33 @@ class OccurrenceCollectionListener extends SparkListener {
   }
 
   override def onTaskEnd(task: SparkListenerTaskEnd): Unit = {
-    def timeToString(remainingTimeApproxMin: Float): String = {
-      "%.1f".format(remainingTimeApproxMin)
-    }
     if (task.taskInfo.successful) {
       totalCompletedTasks.incrementAndGet()
+      val finishTime: Long = task.taskInfo.finishTime
 
       if (task.taskInfo.index % 100 == 0) {
-        val totalCompletedSnapshot = totalCompletedTasks.get
-        val totalSubmittedSnapshot = totalSubmittedTasks.get
-        val percentComplete = totalCompletedSnapshot * 100 / totalSubmittedSnapshot
-        sendMsg(s"${percentComplete}% (${totalCompletedSnapshot}/${totalSubmittedSnapshot}) complete")
-
-        val totalDuration = task.taskInfo.finishTime - startTime
-        val avgDurationPerTask = totalDuration / totalCompletedSnapshot.toFloat
-        val remainingTimeApproxMs = (totalSubmittedSnapshot - totalCompletedSnapshot) * avgDurationPerTask
-        val remainingTimeApproxMin: Float = remainingTimeApproxMs / (1000 * 60)
-        sendMsg(s"eta +[${timeToString(remainingTimeApproxMin)}] minutes, started [${timeToString(totalDuration.toFloat)}] minutes ago")
+        reportProgress(finishTime)
       }
     }
 
+  }
+
+  def reportProgress(finishTime: Long): Unit = {
+    def timeToString(remainingTimeApproxMin: Float): String = {
+      "%.0f".format(remainingTimeApproxMin / (1000 * 60))
+    }
+
+    val totalCompletedSnapshot = totalCompletedTasks.get
+    val totalSubmittedSnapshot = totalSubmittedTasks.get
+
+    val percentComplete = totalCompletedSnapshot * 100 / totalSubmittedSnapshot
+    sendMsg(s"${percentComplete}% (${totalCompletedSnapshot}/${totalSubmittedSnapshot}) complete")
+
+    val totalDuration = finishTime - startTime
+    val avgDurationPerTask = totalDuration / totalCompletedSnapshot.toFloat
+    val remainingTimeApproxMs = (totalSubmittedSnapshot - totalCompletedSnapshot) * avgDurationPerTask
+    val remainingTimeApproxMin: Float = remainingTimeApproxMs / (1000 * 60)
+    sendMsg(s"eta +[${timeToString(remainingTimeApproxMs)}] minutes, started [${timeToString(totalDuration.toFloat)}] minutes ago")
   }
 
   override def onJobStart(jobStart: SparkListenerJobStart): Unit = {
@@ -58,21 +65,10 @@ class OccurrenceCollectionListener extends SparkListener {
     if (!started.getAndSet(true)) {
       startTime = jobStart.time
     }
-    sendMsg(s"onJobStart job id [${jobStart.jobId}] with stages [${jobStart.stageIds}] at [${jobStart.time}]")
-  }
-
-  override def onJobEnd(jobEnd: SparkListenerJobEnd): Unit = {
-    jobEnd.jobResult match {
-      case JobSucceeded => {
-        sendMsg(s"onJobEnd job id [${jobEnd.jobId}] succeeded at [${jobEnd.time}]")
-      }
-      case _ => {
-        sendMsg(s"onJobEnd job id [${jobEnd.jobId}] failed")
-      }
-    }
   }
 
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
     sendMsg(s"onApplicationEnd end time: [${applicationEnd.time}]")
+    reportProgress(applicationEnd.time)
   }
 }
