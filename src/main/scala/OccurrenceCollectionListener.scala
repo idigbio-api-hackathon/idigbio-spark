@@ -47,7 +47,7 @@ class OccurrenceCollectionListener extends SparkListener {
         val avgDurationPerTask = totalDuration / totalCompletedSnapshot.toFloat
         val remainingTimeApproxMs = (totalSubmittedSnapshot - totalCompletedSnapshot) * avgDurationPerTask
         val remainingTimeApproxMin: Float = remainingTimeApproxMs / (1000 * 60)
-        sendMsg(s"eta +[${timeToString(remainingTimeApproxMin)}] minutes, started [${timeToString(processingTime.toFloat)}] minutes ago")
+        sendMsg(s"eta +[${timeToString(remainingTimeApproxMin)}] minutes, started [${timeToString(totalDuration.toFloat)}] minutes ago")
       }
     }
 
