@@ -1,4 +1,5 @@
 import java.util
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 
 import org.apache.spark.executor.{OutputMetrics, TaskMetrics}
 import org.apache.spark.scheduler._
@@ -15,26 +16,44 @@ class OccurrenceCollectionListener extends SparkListener {
 
   lazy val producer = new KafkaProducer[String, String](props)
 
+  var started: AtomicBoolean = new AtomicBoolean(false)
+  var startTime: Long = 0L
+  var totalSubmittedTasks: AtomicLong = new AtomicLong(0L)
+  var totalCompletedTasks: AtomicLong = new AtomicLong(0L)
+
   def sendMsg(msg: String): Unit = {
     val message = new ProducerRecord[String, String](topic, null, msg)
     producer.send(message)
   }
 
-  override def onStageCompleted(stage: SparkListenerStageCompleted): Unit = {
-    sendMsg(s"onStageCompleted ${stage.stageInfo.name} with [${stage.stageInfo.numTasks}] tasks")
-  }
-
   override def onStageSubmitted(stage: SparkListenerStageSubmitted): Unit = {
-    sendMsg(s"onStageSubmitted ${stage.stageInfo.name} with [${stage.stageInfo.numTasks}] tasks")
+    totalSubmittedTasks.getAndAdd(stage.stageInfo.numTasks)
   }
 
   override def onTaskEnd(task: SparkListenerTaskEnd): Unit = {
-    if (task.taskInfo.index % 100 == 0) {
-      sendMsg(s"onTaskEnd with task [${task.taskInfo.index}] for stageId [${task.stageId}] status: [${task.taskInfo.status}]")
+    if (task.taskInfo.successful) {
+      val totalCompletedSnapshot = totalCompletedTasks.incrementAndGet()
+      val totalSubmittedSnapshot = totalSubmittedTasks.get
+
+      val percentComplete = totalCompletedSnapshot * 100 / totalSubmittedSnapshot
+      if (task.taskInfo.index % 100 == 0) {
+        sendMsg(s"${percentComplete}% (${totalCompletedSnapshot}]/${totalSubmittedSnapshot}) complete")
+
+        val totalDuration = task.taskInfo.finishTime - startTime
+        val avgDurationPerTask = totalDuration / totalCompletedSnapshot.toFloat
+        val remainingTimeApproxMs = (totalSubmittedSnapshot - totalCompletedSnapshot) * avgDurationPerTask
+        val remainingTimeString: String = "%.1".format(remainingTimeApproxMs / (1000 * 60))
+        sendMsg(s"eta +${remainingTimeString} minutes")
+      }
     }
+
   }
 
   override def onJobStart(jobStart: SparkListenerJobStart): Unit = {
+    // onApplicationStart not sent to embedded listener, so using first job instead
+    if (!started.getAndSet(true)) {
+      startTime = jobStart.time
+    }
     sendMsg(s"onJobStart job id [${jobStart.jobId}] with stages [${jobStart.stageIds}] at [${jobStart.time}]")
   }
 
