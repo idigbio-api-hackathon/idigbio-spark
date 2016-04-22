@@ -37,13 +37,13 @@ class OccurrenceCollectionListener extends SparkListener {
 
       val percentComplete = totalCompletedSnapshot * 100 / totalSubmittedSnapshot
       if (task.taskInfo.index % 100 == 0) {
-        sendMsg(s"${percentComplete}% (${totalCompletedSnapshot}]/${totalSubmittedSnapshot}) complete")
+        sendMsg(s"${percentComplete}% (${totalCompletedSnapshot}/${totalSubmittedSnapshot}) complete")
 
         val totalDuration = task.taskInfo.finishTime - startTime
         val avgDurationPerTask = totalDuration / totalCompletedSnapshot.toFloat
         val remainingTimeApproxMs = (totalSubmittedSnapshot - totalCompletedSnapshot) * avgDurationPerTask
-        val remainingTimeString: String = "%.1".format(remainingTimeApproxMs / (1000 * 60))
-        sendMsg(s"eta +${remainingTimeString} minutes")
+        val remainingTimeString: String = "%.1f".format(remainingTimeApproxMs / (1000 * 60))
+        sendMsg(s"eta +[$remainingTimeString] minutes")
       }
     }
 
