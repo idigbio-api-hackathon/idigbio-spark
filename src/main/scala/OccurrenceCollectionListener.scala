@@ -68,7 +68,6 @@ class OccurrenceCollectionListener(monitorSelector: MonitorSelector) extends Spa
     val avgDurationPerTask = totalDuration / totalCompletedSnapshot.toFloat
     val remainingTimeApproxMs = (totalSubmittedSnapshot - totalCompletedSnapshot) * avgDurationPerTask
     val remainingTimeApproxMin: Float = remainingTimeApproxMs / (1000 * 60)
-    sendMsg(s"eta +[${timeToString(remainingTimeApproxMs)}] minutes, started [${timeToString(totalDuration.toFloat)}] minutes ago")
 
     import MonitorStatusJsonProtocol._
     val status = MonitorStatus(selector = monitorSelector,
@@ -85,7 +84,6 @@ class OccurrenceCollectionListener(monitorSelector: MonitorSelector) extends Spa
   }
 
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
-    sendMsg(s"onApplicationEnd end time: [${applicationEnd.time}]")
     reportProgress(applicationEnd.time, "ready")
   }
 }
