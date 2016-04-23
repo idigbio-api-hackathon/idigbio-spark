@@ -4,8 +4,19 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import org.apache.spark.executor.{OutputMetrics, TaskMetrics}
 import org.apache.spark.scheduler._
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
+import spray.json._
 
-class OccurrenceCollectionListener extends SparkListener {
+
+case class MonitorSelector(taxonSelector: String, wktString: String, traitSelector: String)
+
+case class MonitorStatus(selector: MonitorSelector, status: String, percentComplete: Double, eta: Long)
+
+object MonitorStatusJsonProtocol extends DefaultJsonProtocol {
+  implicit val monitorSelectorFormat = jsonFormat3(MonitorSelector)
+  implicit val monitorStatusFormat = jsonFormat4(MonitorStatus)
+}
+
+class OccurrenceCollectionListener(monitorSelector: MonitorSelector) extends SparkListener {
   val props = new util.HashMap[String, Object]()
   val topic = "effechecka-selector"
   props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
@@ -20,6 +31,7 @@ class OccurrenceCollectionListener extends SparkListener {
   var startTime: Long = 0L
   var totalSubmittedTasks: AtomicLong = new AtomicLong(0L)
   var totalCompletedTasks: AtomicLong = new AtomicLong(0L)
+
 
   def sendMsg(msg: String): Unit = {
     val message = new ProducerRecord[String, String](topic, null, msg)
@@ -51,13 +63,18 @@ class OccurrenceCollectionListener extends SparkListener {
     val totalSubmittedSnapshot = totalSubmittedTasks.get
 
     val percentComplete = totalCompletedSnapshot * 100 / totalSubmittedSnapshot
-    sendMsg(s"${percentComplete}% (${totalCompletedSnapshot}/${totalSubmittedSnapshot}) complete")
 
     val totalDuration = finishTime - startTime
     val avgDurationPerTask = totalDuration / totalCompletedSnapshot.toFloat
     val remainingTimeApproxMs = (totalSubmittedSnapshot - totalCompletedSnapshot) * avgDurationPerTask
     val remainingTimeApproxMin: Float = remainingTimeApproxMs / (1000 * 60)
     sendMsg(s"eta +[${timeToString(remainingTimeApproxMs)}] minutes, started [${timeToString(totalDuration.toFloat)}] minutes ago")
+
+    import MonitorStatusJsonProtocol._
+    val status = MonitorStatus(selector = monitorSelector,
+      status = "processing", percentComplete = percentComplete, eta = remainingTimeApproxMs.toLong)
+
+    sendMsg(status.toJson.toString)
   }
 
   override def onJobStart(jobStart: SparkListenerJobStart): Unit = {
