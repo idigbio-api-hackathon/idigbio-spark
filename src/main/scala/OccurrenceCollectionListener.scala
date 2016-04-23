@@ -54,7 +54,7 @@ class OccurrenceCollectionListener(monitorSelector: MonitorSelector) extends Spa
 
   }
 
-  def reportProgress(finishTime: Long): Unit = {
+  def reportProgress(finishTime: Long, monitorStatus: String = "processing"): Unit = {
     def timeToString(remainingTimeApproxMin: Float): String = {
       "%.0f".format(remainingTimeApproxMin / (1000 * 60))
     }
@@ -72,7 +72,7 @@ class OccurrenceCollectionListener(monitorSelector: MonitorSelector) extends Spa
 
     import MonitorStatusJsonProtocol._
     val status = MonitorStatus(selector = monitorSelector,
-      status = "processing", percentComplete = percentComplete, eta = remainingTimeApproxMs.toLong)
+      status = monitorStatus, percentComplete = percentComplete, eta = remainingTimeApproxMs.toLong)
 
     sendMsg(status.toJson.toString)
   }
@@ -86,6 +86,6 @@ class OccurrenceCollectionListener(monitorSelector: MonitorSelector) extends Spa
 
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
     sendMsg(s"onApplicationEnd end time: [${applicationEnd.time}]")
-    reportProgress(applicationEnd.time)
+    reportProgress(applicationEnd.time, "ready")
   }
 }
