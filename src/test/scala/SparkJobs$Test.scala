@@ -209,13 +209,13 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
         session.execute(CassandraUtil.checklistRegistryTableCreate)
         session.execute(s"TRUNCATE effechecka.checklist")
       }
-      val otherLines = Seq(("Mammalia|Insecta", "LINE(1 2 3 4)", "bodyMass greaterThan 19 g", "sources", "observedbefore", "observedafter", "checklist item", 1)
-        , ("Mammalia|Insecta", "LINE(1 2 3 4)", "bodyMass greaterThan 19 g", "source", "observedbefore", "observedafter", "other checklist item", 1))
+      val otherLines = Seq(("Mammalia|Insecta", "LINE(1 2 3 4)", "bodyMass greaterThan 19 g", "checklist item", 1)
+        , ("Mammalia|Insecta", "LINE(1 2 3 4)", "bodyMass greaterThan 19 g", "other checklist item", 1))
 
       sc.parallelize(otherLines)
         .saveToCassandra("effechecka", "checklist", CassandraUtil.checklistColumns)
 
-      sc.parallelize(Seq(("bla|bla", "something", "trait|anotherTrait", "sources", "observedbefore", "observedafter", "running", 123L)))
+      sc.parallelize(Seq(("bla|bla", "something", "trait|anotherTrait", "running", 123L)))
         .saveToCassandra("effechecka", "checklist_registry", CassandraUtil.checklistRegistryColumns)
     } catch {
       case e: IOException => {
@@ -232,12 +232,12 @@ class SparkJobs$Test extends TestSparkContext with RankIdentifiers with LinkIden
         session.execute(CassandraUtil.occurrenceCollectionRegistryTableCreate)
         session.execute(s"TRUNCATE effechecka.occurrence_collection")
       }
-      val otherLines = Seq(("some taxonselector", "some wktstring", "some traitselector", "sources", "observedbefore", "observedafter", "Animalia|Aves", "11.4", "12.2", "2013-05-03", 123L, 124L, 635829854630400000L, "http://archive2"))
+      val otherLines = Seq(("some taxonselector", "some wktstring", "some traitselector", "Animalia|Aves", "11.4", "12.2", "2013-05-03", 123L, 124L, 635829854630400000L, "http://archive2"))
 
       sc.parallelize(otherLines)
         .saveToCassandra("effechecka", "occurrence_collection", CassandraUtil.occurrenceCollectionColumns)
 
-      sc.parallelize(Seq(("bla|bla", "something", "trait|anotherTrait", "sources", "observedbefore", "observedafter", "running", 123L)))
+      sc.parallelize(Seq(("bla|bla", "something", "trait|anotherTrait", "running", 123L)))
         .saveToCassandra("effechecka", "occurrence_collection_registry", CassandraUtil.occurrenceCollectionRegistryColumns)
     } catch {
       case e: IOException => {

@@ -48,14 +48,14 @@ object OccurrenceCollectionGenerator {
           session.execute(CassandraUtil.occurrenceCollectionRegistryTableCreate)
           session.execute(CassandraUtil.occurrenceCollectionTableCreate)
         }
-        occurrenceCollection.map(item => (taxonSelectorString, wktString, traitSelectorString, "", "", "", item._3, item._1, item._2, item._7, item._8, item._4, item._5, item._6))
+        occurrenceCollection.map(item => (taxonSelectorString, wktString, traitSelectorString, item._3, item._1, item._2, item._7, item._8, item._4, item._5, item._6))
           .saveToCassandra("effechecka", "occurrence_collection", CassandraUtil.occurrenceCollectionColumns)
 
-        sc.parallelize(Seq((taxonSelectorString, wktString, traitSelectorString, "", "", "", "ready", occurrenceCollection.count())))
+        sc.parallelize(Seq((taxonSelectorString, wktString, traitSelectorString, "ready", occurrenceCollection.count())))
           .saveToCassandra("effechecka", "occurrence_collection_registry", CassandraUtil.occurrenceCollectionRegistryColumns)
       }
 
-      case _ => occurrenceCollection.map(item => List(taxonSelectorString, wktString, traitSelectorString, "", "", "", item._1, item._2).mkString(","))
+      case _ => occurrenceCollection.map(item => List(taxonSelectorString, wktString, traitSelectorString, item._1, item._2).mkString(","))
         .saveAsTextFile(occurrenceFile + ".occurrences" + System.currentTimeMillis)
     }
 
@@ -83,24 +83,12 @@ object OccurrenceCollectionGenerator {
       opt[String]('f', "output-format") optional() valueName "<output format>" action { (x, c) =>
         c.copy(outputFormat = x)
       } text "output format"
-      opt[String]('c', "occurrence-archives") required() action { (x, c) =>
+      opt[String]('c', "<occurrence url>") required() action { (x, c) =>
         c.copy(occurrenceFiles = splitAndClean(x))
       } text "list of occurrence archive urls"
-      opt[String]('t', "trait-archives") required() action { (x, c) =>
+      opt[String]('t', "<traits url>") required() action { (x, c) =>
         c.copy(traitFiles = splitAndClean(x))
       } text "list of trait archive urls"
-      opt[String]('u', "trait-selector") optional() action { (x, c) =>
-        c.copy(traitSelector = splitAndClean(x))
-      } text "pipe separated list of trait selectors"
-      opt[String]('v', "source-selector") optional() action { (x, c) =>
-        c.copy(sourceSelector = splitAndClean(x))
-      } text "pipe separated list of source archive names (e.g. [idigbio] or [gbif])"
-      opt[String]('w', "observed-before") optional() action { (x, c) =>
-        c.copy(observedBefore = Some(x.trim))
-      } text "iso8601 date before the occurrences has been observed (e.g. 2015-01-01)"
-      opt[String]('x', "observed-after") optional() action { (x, c) =>
-        c.copy(observedAfter = Some(x.trim))
-      } text "iso8601 date after the occurrences has been observed (e.g. 2016-01-01)"
 
       arg[String]("<taxon selectors>") required() action { (x, c) =>
         c.copy(taxonSelector = splitAndClean(x))
@@ -108,6 +96,9 @@ object OccurrenceCollectionGenerator {
       arg[String]("<geospatial selector>") required() action { (x, c) =>
         c.copy(geoSpatialSelector = x.trim)
       } text "WKT string specifying an geospatial area of interest"
+      arg[String]("trait selectors") optional() action { (x, c) =>
+        c.copy(traitSelector = splitAndClean(x))
+      } text "pipe separated list of trait criteria"
     }
 
     parser.parse(args, ChecklistConf())

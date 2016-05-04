@@ -13,9 +13,6 @@ class ChecklistGenerator$Test extends FlatSpec with Matchers {
         config.geoSpatialSelector should be("some wkt string")
         config.taxonSelector should be(Seq("taxonA", "taxonB"))
         config.traitSelector should be(Seq("trait1", "trait2"))
-        config.observedBefore should be(None)
-        config.observedAfter should be(None)
-        config.sourceSelector should be(Seq())
       }
       case None => fail("should return a valid config object")
     }
