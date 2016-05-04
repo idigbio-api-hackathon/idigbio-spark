@@ -22,7 +22,7 @@ object OccurrenceCollectionGenerator {
       .setAppName("occ2collection")
 
     val sc = new SparkContext(conf)
-    sc.addSparkListener(new OccurrenceCollectionListener(MonitorSelector(taxonSelectorString, wktString, config.traitSelector.mkString("|"))))
+    sc.addSparkListener(new OccurrenceCollectionListener(MonitorSelector(taxonSelectorString, wktString, Some(config.traitSelector.mkString("|")))))
 
     val sqlContext = SQLContextSingleton.getInstance(sc)
     val occurrences: DataFrame = sqlContext.read.format("parquet").load(occurrenceFile)

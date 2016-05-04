@@ -7,12 +7,17 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, Produce
 import spray.json._
 
 
-case class MonitorSelector(taxonSelector: String, wktString: String, traitSelector: String)
+case class MonitorSelector(taxonSelector: String,
+                           wktString: String,
+                           traitSelector: Option[String] = None,
+                           sourceSelector: Option[String] = None,
+                           observedBefore: Option[String] = None,
+                           observedAfter: Option[String] = None)
 
 case class MonitorStatus(selector: MonitorSelector, status: String, percentComplete: Double, eta: Long)
 
 object MonitorStatusJsonProtocol extends DefaultJsonProtocol {
-  implicit val monitorSelectorFormat = jsonFormat3(MonitorSelector)
+  implicit val monitorSelectorFormat = jsonFormat6(MonitorSelector)
   implicit val monitorStatusFormat = jsonFormat4(MonitorStatus)
 }
 
