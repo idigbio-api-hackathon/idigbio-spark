@@ -24,6 +24,9 @@ case class ChecklistConf(occurrenceFiles: Seq[String] = Seq()
                          , traitSelector: Seq[String] = Seq()
                          , taxonSelector: Seq[String] = Seq()
                          , geoSpatialSelector: String = ""
+                         , sourceSelector: Seq[String] = Seq()
+                         , observedBefore: Option[String] = None
+                         , observedAfter: Option[String] = None
                          , outputFormat: String = "cassandra"
                          , firstSeenOnly: Boolean = true)
 
@@ -58,10 +61,10 @@ object ChecklistGenerator {
           session.execute(CassandraUtil.checklistRegistryTableCreate)
           session.execute(CassandraUtil.checklistTableCreate)
         }
-        checklist.cache().map(item => (taxonSelectorString, wktString, traitSelectorString, item._1, item._2))
+        checklist.cache().map(item => (taxonSelectorString, wktString, traitSelectorString, "", "", "", item._1, item._2))
           .saveToCassandra("effechecka", "checklist", CassandraUtil.checklistColumns)
 
-        sc.parallelize(Seq((taxonSelectorString, wktString, traitSelectorString, "ready", checklist.count())))
+        sc.parallelize(Seq((taxonSelectorString, wktString, traitSelectorString, "", "", "", "ready", checklist.count())))
           .saveToCassandra("effechecka", "checklist_registry", CassandraUtil.checklistRegistryColumns)
       }
 
