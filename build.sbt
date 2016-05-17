@@ -4,7 +4,7 @@ version := "1.5.1"
 
 scalaVersion := "2.10.5"
 
-val sparkV: String = "1.6.0"
+val sparkV: String = "1.6.1"
 
 libraryDependencies ++= Seq(
   "org.littleshoot" % "littleshoot-commons-id" % "1.0.3" excludeAll (
@@ -16,7 +16,6 @@ libraryDependencies ++= Seq(
   "com.databricks" % "spark-csv_2.10" % "1.3.0",
   "io.spray" %%  "spray-json" % "1.3.2",
   "org.globalnames" %% "gnparser" % "0.2.0" excludeAll(
-    ExclusionRule(organization = "com.fasterxml.jackson.core"),
     ExclusionRule(organization = "org.scala-lang")),
   "org.locationtech.spatial4j" % "spatial4j" % "0.6",
   "com.vividsolutions" % "jts-core" % "1.14.0",
