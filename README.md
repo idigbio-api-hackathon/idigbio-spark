@@ -1,3 +1,5 @@
+**This repository has been forked and obsoleted by [https://github.com/bio-guoda/idigbio-spark]<https://github.com/bio-guoda/idigbio-spark>. Please continue development there.**
+
 # idigbio-spark
 Links iDigBio records to [GenBank](http://www.ncbi.nlm.nih.gov/genbank/), [Global Names](http://globalnames.org) and possibly other open bioinformatics resources. The purpose of this project is to **link specimen records to external systems like GenBank and Global Names at scale** by using [Apache's Spark](http://spark.apache.org) a distributed data processing tool. 
 
